@@ -390,39 +390,94 @@ function generateSample(data: FormData): ResultBlock[] {
   const beneficio = data.beneficio.trim();
   const canal = data.canal.trim();
   const tom = data.tom.toLowerCase();
+  const normalizarTexto = (texto: string) =>
+    texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  const contexto = normalizarTexto(`${produto} ${publico} ${dor} ${beneficio}`);
+  const isOfertaRural = [
+    'safra',
+    'produtor rural',
+    'produtores rurais',
+    'produtor',
+    'agricultor',
+    'agricultores',
+    'custos',
+    'custo por hectare',
+    'lucro',
+    'producao rural',
+  ].some((termo) => contexto.includes(termo));
+
+  if (isOfertaRural) {
+    return [
+      {
+        title: '1. Diagnóstico rápido da oferta',
+        content: `${produto} resolve uma dor concreta de ${publico}: trabalhar a safra inteira, vender a produção e ainda não saber quanto realmente sobrou. Na prática, isso aparece como ${dor}. A força da oferta está em mostrar que faturamento não é lucro: o produtor precisa enxergar custo por hectare, margem e lucro real antes de decidir a próxima safra.`,
+      },
+      {
+        title: '2. Melhor ângulo de venda',
+        content: `Você pode estar produzindo bem e ainda perdendo dinheiro sem perceber. Em ${canal}, esse ângulo combina com um tom ${tom} porque fala direto sobre dinheiro que entra versus dinheiro que sobra no fim da safra.`,
+      },
+      {
+        title: '3. Roteiro de Reels',
+        content: `Gancho: Você sabe quanto realmente sobra da sua safra depois de pagar tudo?
+
+Problema: Muitos produtores olham só para o valor da venda e acham que tiveram lucro.
+
+Consequência: Mas quando entram insumos, diesel, diárias, manutenção, máquinas e pequenos gastos, a conta muda.
+
+Solução: ${produto} organiza os custos e mostra o lucro real da produção, com mais clareza sobre ${beneficio}.
+
+CTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
+      },
+      {
+        title: '4. Mensagem de WhatsApp',
+        content: `Oi, tudo bem? Muitos produtores só descobrem se ganharam ou perderam dinheiro depois que a safra termina. O ${produto} ajuda a organizar os custos, enxergar o gasto por hectare e entender se a produção está dando lucro de verdade. Quer que eu te mostre como funciona?`,
+      },
+      {
+        title: '5. Headline de venda',
+        content: `Descubra se sua safra está dando lucro ou apenas girando dinheiro.`,
+      },
+      {
+        title: '6. CTA para comprar o pacote completo',
+        content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com clareza sobre custos, produção e lucro real.`,
+      },
+    ];
+  }
 
   return [
     {
       title: '1. Diagnóstico rápido da oferta',
-      content: `${produto} resolve uma dor concreta de ${publico}: ${dor}. A comunicação deve mostrar por que esse problema custa tempo, dinheiro ou oportunidades no dia a dia. O ponto forte da oferta é entregar ${beneficio} de um jeito claro, prático e fácil de entender.`,
+      content: `${produto} resolve uma dor concreta de ${publico}: ${dor}. A comunicação deve mostrar onde essa dor aparece na rotina de compra, atendimento ou decisão do cliente, e ligar esse cenário ao benefício central: ${beneficio}. Quanto mais a promessa parecer uma situação real, mais fácil fica entender o valor da oferta.`,
     },
     {
       title: '2. Melhor ângulo de venda',
-      content: `Você pode estar fazendo tudo do jeito que sempre fez e ainda assim deixando resultado na mesa sem perceber. Esse ângulo funciona bem em ${canal} com um tom ${tom}, porque abre uma conversa direta sobre o problema antes de apresentar a solução.`,
+      content: `Para ${publico}, ${dor} não é apenas um incômodo: é o obstáculo que impede ${beneficio}. Em ${canal}, use um tom ${tom} para abrir a conversa com esse problema e apresentar ${produto} como o caminho mais claro para resolvê-lo.`,
     },
     {
       title: '3. Roteiro de Reels',
-      content: `Gancho: E se o problema não estiver no esforço, mas na falta de clareza sobre o que realmente está acontecendo?
+      content: `Gancho: ${publico} ainda perde vendas, energia ou previsibilidade por causa de ${dor}?
 
-Problema: Muita gente tenta melhorar os resultados olhando só para uma parte da situação.
+Problema: Quando esse problema vira rotina, a pessoa tenta compensar no esforço e continua sem chegar em ${beneficio}.
 
-Consequência: Quando os detalhes ficam soltos, decisões importantes acabam sendo tomadas no escuro.
+Consequência: O resultado é uma oferta mais difícil de explicar, uma decisão mais lenta e clientes sem perceberem o valor real do que está sendo vendido.
 
-Solução: ${produto} organiza esse cenário e ajuda a transformar informação em ação prática.
+Solução: ${produto} organiza a mensagem da oferta e mostra por que ${beneficio} é o próximo passo mais lógico.
 
-CTA: Quer entender como isso pode funcionar para você? Chame no WhatsApp.`,
+CTA: Quer ver como isso se aplica ao seu caso? Chame no WhatsApp.`,
     },
     {
       title: '4. Mensagem de WhatsApp',
-      content: `Oi, tudo bem? Vi que esse é um ponto que costuma travar muita gente: ${dor}. O ${produto} ajuda a olhar para isso com mais clareza e a encontrar um caminho mais simples para chegar em ${beneficio}. Quer que eu te mostre como funciona?`,
+      content: `Oi, tudo bem? Vi que ${dor} costuma atrapalhar bastante quem precisa vender com clareza. O ${produto} foi pensado para ajudar ${publico} a chegar em ${beneficio} com uma mensagem mais simples de entender e mais fácil de apresentar. Quer que eu te mostre como funciona?`,
     },
     {
       title: '5. Headline de venda',
-      content: `Tenha clareza antes de perder mais oportunidades.`,
+      content: `${beneficio} sem deixar ${dor} travar sua venda.`,
     },
     {
       title: '6. CTA para comprar o pacote completo',
-      content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender sua oferta com mais clareza, consistência e força comercial.`,
+      content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com mais clareza, mais contexto e argumentos comerciais adaptados ao seu público.`,
     },
   ];
 }
