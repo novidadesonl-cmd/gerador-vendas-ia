@@ -8,10 +8,30 @@ Permitir que pequenos negócios, afiliados, infoprodutores e prestadores de serv
 
 ## Primeira versão
 
-A primeira versão terá:
+A primeira versão tem:
 
-- Página inicial
+- Página inicial com posicionamento comercial da ferramenta
 - Formulário de amostra grátis
-- Resultado simulado
-- Página de planos
-- Botões de checkout placeholder
+- Resultado simulado com blocos copiáveis
+- Página de planos com três ofertas e links placeholder da Kiwify
+- Design responsivo com aparência moderna de ferramenta de IA
+
+## Stack
+
+- React
+- TypeScript
+- Vite
+- CSS simples
+
+## Como rodar
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
