@@ -423,11 +423,11 @@ function generateSample(data: SampleFormData): ResultBlock[] {
   ];
 }
 
-function cleanInput(value: string, fallback: string) {
+function cleanInput(value: string, fallback: string): string {
   return value.trim().replace(/\s+/g, ' ') || fallback;
 }
 
-function makeAudienceLabel(audience: string) {
+function makeAudienceLabel(audience: string): string {
   const normalized = audience.toLowerCase();
 
   if (normalized.startsWith('pessoas') || normalized.startsWith('quem')) {
@@ -437,7 +437,7 @@ function makeAudienceLabel(audience: string) {
   return `esse público (${audience})`;
 }
 
-function makePainContext(pain: string) {
+function makePainContext(pain: string): string {
   const normalized = pain.toLowerCase();
 
   if (normalized.startsWith('falta') || normalized.startsWith('medo') || normalized.startsWith('dificuldade')) {
@@ -447,7 +447,7 @@ function makePainContext(pain: string) {
   return `um cenário de ${normalized}`;
 }
 
-function makeBenefitOutcome(benefit: string) {
+function makeBenefitOutcome(benefit: string): string {
   const normalized = benefit.toLowerCase();
 
   if (normalized.startsWith('ter ') || normalized.startsWith('conseguir ') || normalized.startsWith('aumentar ')) {
@@ -457,7 +457,7 @@ function makeBenefitOutcome(benefit: string) {
   return `alcançar ${normalized}`;
 }
 
-function makeChannelCue(channel: string) {
+function makeChannelCue(channel: string): string {
   const normalized = channel.toLowerCase();
 
   if (normalized.includes('whatsapp')) {
