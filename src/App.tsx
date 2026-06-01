@@ -384,30 +384,45 @@ function PlansPage() {
 }
 
 function generateSample(data: FormData): ResultBlock[] {
+  const produto = data.produto.trim();
+  const publico = data.publico.trim();
+  const dor = data.dor.trim();
+  const beneficio = data.beneficio.trim();
+  const canal = data.canal.trim();
+  const tom = data.tom.toLowerCase();
+
   return [
     {
       title: '1. Diagnóstico rápido da oferta',
-      content: `O produto ${data.produto} tem uma promessa forte quando comunica de forma simples que ajuda ${data.publico} a sair do problema "${data.dor}" e chegar ao resultado "${data.beneficio}". Para vender melhor, deixe o antes e depois mais visível logo nos primeiros segundos.`,
+      content: `${produto} resolve uma dor concreta de ${publico}: ${dor}. A comunicação deve mostrar por que esse problema custa tempo, dinheiro ou oportunidades no dia a dia. O ponto forte da oferta é entregar ${beneficio} de um jeito claro, prático e fácil de entender.`,
     },
     {
       title: '2. Melhor ângulo de venda',
-      content: `Use o ângulo: "pare de conviver com ${data.dor} e conquiste ${data.beneficio} com um caminho simples". No canal ${data.canal}, esse posicionamento funciona bem com tom ${data.tom.toLowerCase()}, porque conecta urgência, clareza e transformação.`,
+      content: `Você pode estar fazendo tudo do jeito que sempre fez e ainda assim deixando resultado na mesa sem perceber. Esse ângulo funciona bem em ${canal} com um tom ${tom}, porque abre uma conversa direta sobre o problema antes de apresentar a solução.`,
     },
     {
       title: '3. Roteiro de Reels',
-      content: `Cena 1: comece com "Se você é ${data.publico} e ainda sofre com ${data.dor}, veja isso". Cena 2: mostre o erro comum que mantém o problema. Cena 3: apresente ${data.produto} como solução prática. Cena 4: destaque ${data.beneficio}. Cena 5: finalize com "comente EU QUERO para receber o próximo passo".`,
+      content: `Gancho: E se o problema não estiver no esforço, mas na falta de clareza sobre o que realmente está acontecendo?
+
+Problema: Muita gente tenta melhorar os resultados olhando só para uma parte da situação.
+
+Consequência: Quando os detalhes ficam soltos, decisões importantes acabam sendo tomadas no escuro.
+
+Solução: ${produto} organiza esse cenário e ajuda a transformar informação em ação prática.
+
+CTA: Quer entender como isso pode funcionar para você? Chame no WhatsApp.`,
     },
     {
       title: '4. Mensagem de WhatsApp',
-      content: `Oi! Vi que você pode estar buscando uma forma de resolver ${data.dor}. O ${data.produto} foi criado para ajudar ${data.publico} a conquistar ${data.beneficio} sem complicação. Quer que eu te envie os detalhes e a melhor condição de hoje?`,
+      content: `Oi, tudo bem? Vi que esse é um ponto que costuma travar muita gente: ${dor}. O ${produto} ajuda a olhar para isso com mais clareza e a encontrar um caminho mais simples para chegar em ${beneficio}. Quer que eu te mostre como funciona?`,
     },
     {
       title: '5. Headline de venda',
-      content: `Para ${data.publico}: elimine ${data.dor} e alcance ${data.beneficio} com ${data.produto}.`,
+      content: `Tenha clareza antes de perder mais oportunidades.`,
     },
     {
       title: '6. CTA para comprar o pacote completo',
-      content: `Essa foi apenas uma amostra. Compre o pacote completo do Gerador de Vendas IA e receba textos, ângulos e conteúdos prontos para transformar ${data.produto} em uma oferta muito mais clara e persuasiva.`,
+      content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender sua oferta com mais clareza, consistência e força comercial.`,
     },
   ];
 }
