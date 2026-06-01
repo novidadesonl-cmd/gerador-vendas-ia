@@ -390,14 +390,22 @@ function generateSample(data: FormData): ResultBlock[] {
   const beneficio = data.beneficio.trim();
   const canal = data.canal.trim();
   const tom = data.tom.toLowerCase();
-  const contexto = `${produto} ${publico} ${dor} ${beneficio}`.toLowerCase();
+  const normalizarTexto = (texto: string) =>
+    texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  const contexto = normalizarTexto(`${produto} ${publico} ${dor} ${beneficio}`);
   const isOfertaRural = [
     'safra',
     'produtor rural',
+    'produtores rurais',
     'agricultor',
+    'agricultores',
     'custos',
+    'custo por hectare',
     'lucro',
-    'produção rural',
+    'producao rural',
   ].some((termo) => contexto.includes(termo));
 
   if (isOfertaRural) {
