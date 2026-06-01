@@ -291,7 +291,7 @@ function ResultPage({
                 {copiedBlock === block.title ? 'Copiado!' : 'Copiar'}
               </button>
             </div>
-            <p>{block.content}</p>
+            <p style={{ whiteSpace: 'pre-line' }}>{block.content}</p>
           </article>
         ))}
       </div>
