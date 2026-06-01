@@ -384,30 +384,91 @@ function PlansPage() {
 }
 
 function generateSample(data: FormData): ResultBlock[] {
+  const produto = data.produto.trim();
+  const publico = data.publico.trim();
+  const dor = data.dor.trim();
+  const beneficio = data.beneficio.trim();
+  const canal = data.canal.trim();
+  const tom = data.tom.toLowerCase();
+  const contexto = `${produto} ${publico} ${dor} ${beneficio}`.toLowerCase();
+  const isOfertaRural = [
+    'safra',
+    'produtor rural',
+    'agricultor',
+    'custos',
+    'lucro',
+    'produção rural',
+  ].some((termo) => contexto.includes(termo));
+
+  if (isOfertaRural) {
+    return [
+      {
+        title: '1. Diagnóstico rápido da oferta',
+        content: `${produto} resolve uma dor concreta de ${publico}: trabalhar a safra inteira, vender a produção e ainda não saber quanto realmente sobrou. Na prática, isso aparece como ${dor}. A força da oferta está em mostrar que faturamento não é lucro: o produtor precisa enxergar custo por hectare, margem e lucro real antes de decidir a próxima safra.`,
+      },
+      {
+        title: '2. Melhor ângulo de venda',
+        content: `Você pode estar produzindo bem e ainda perdendo dinheiro sem perceber. Em ${canal}, esse ângulo combina com um tom ${tom} porque fala direto sobre dinheiro que entra versus dinheiro que sobra no fim da safra.`,
+      },
+      {
+        title: '3. Roteiro de Reels',
+        content: `Gancho: Você sabe quanto realmente sobra da sua safra depois de pagar tudo?
+
+Problema: Muitos produtores olham só para o valor da venda e acham que tiveram lucro.
+
+Consequência: Mas quando entram insumos, diesel, diárias, manutenção, máquinas e pequenos gastos, a conta muda.
+
+Solução: ${produto} organiza os custos e mostra o lucro real da produção, com mais clareza sobre ${beneficio}.
+
+CTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
+      },
+      {
+        title: '4. Mensagem de WhatsApp',
+        content: `Oi, tudo bem? Muitos produtores só descobrem se ganharam ou perderam dinheiro depois que a safra termina. O ${produto} ajuda a organizar os custos, enxergar o gasto por hectare e entender se a produção está dando lucro de verdade. Quer que eu te mostre como funciona?`,
+      },
+      {
+        title: '5. Headline de venda',
+        content: `Descubra se sua safra está dando lucro ou apenas girando dinheiro.`,
+      },
+      {
+        title: '6. CTA para comprar o pacote completo',
+        content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com clareza sobre custos, produção e lucro real.`,
+      },
+    ];
+  }
+
   return [
     {
       title: '1. Diagnóstico rápido da oferta',
-      content: `O produto ${data.produto} tem uma promessa forte quando comunica de forma simples que ajuda ${data.publico} a sair do problema "${data.dor}" e chegar ao resultado "${data.beneficio}". Para vender melhor, deixe o antes e depois mais visível logo nos primeiros segundos.`,
+      content: `${produto} resolve uma dor concreta de ${publico}: ${dor}. A comunicação deve mostrar onde essa dor aparece na rotina de compra, atendimento ou decisão do cliente, e ligar esse cenário ao benefício central: ${beneficio}. Quanto mais a promessa parecer uma situação real, mais fácil fica entender o valor da oferta.`,
     },
     {
       title: '2. Melhor ângulo de venda',
-      content: `Use o ângulo: "pare de conviver com ${data.dor} e conquiste ${data.beneficio} com um caminho simples". No canal ${data.canal}, esse posicionamento funciona bem com tom ${data.tom.toLowerCase()}, porque conecta urgência, clareza e transformação.`,
+      content: `Para ${publico}, ${dor} não é apenas um incômodo: é o obstáculo que impede ${beneficio}. Em ${canal}, use um tom ${tom} para abrir a conversa com esse problema e apresentar ${produto} como o caminho mais claro para resolvê-lo.`,
     },
     {
       title: '3. Roteiro de Reels',
-      content: `Cena 1: comece com "Se você é ${data.publico} e ainda sofre com ${data.dor}, veja isso". Cena 2: mostre o erro comum que mantém o problema. Cena 3: apresente ${data.produto} como solução prática. Cena 4: destaque ${data.beneficio}. Cena 5: finalize com "comente EU QUERO para receber o próximo passo".`,
+      content: `Gancho: ${publico} ainda perde vendas, energia ou previsibilidade por causa de ${dor}?
+
+Problema: Quando esse problema vira rotina, a pessoa tenta compensar no esforço e continua sem chegar em ${beneficio}.
+
+Consequência: O resultado é uma oferta mais difícil de explicar, uma decisão mais lenta e clientes sem perceberem o valor real do que está sendo vendido.
+
+Solução: ${produto} organiza a mensagem da oferta e mostra por que ${beneficio} é o próximo passo mais lógico.
+
+CTA: Quer ver como isso se aplica ao seu caso? Chame no WhatsApp.`,
     },
     {
       title: '4. Mensagem de WhatsApp',
-      content: `Oi! Vi que você pode estar buscando uma forma de resolver ${data.dor}. O ${data.produto} foi criado para ajudar ${data.publico} a conquistar ${data.beneficio} sem complicação. Quer que eu te envie os detalhes e a melhor condição de hoje?`,
+      content: `Oi, tudo bem? Vi que ${dor} costuma atrapalhar bastante quem precisa vender com clareza. O ${produto} foi pensado para ajudar ${publico} a chegar em ${beneficio} com uma mensagem mais simples de entender e mais fácil de apresentar. Quer que eu te mostre como funciona?`,
     },
     {
       title: '5. Headline de venda',
-      content: `Para ${data.publico}: elimine ${data.dor} e alcance ${data.beneficio} com ${data.produto}.`,
+      content: `${beneficio} sem deixar ${dor} travar sua venda.`,
     },
     {
       title: '6. CTA para comprar o pacote completo',
-      content: `Essa foi apenas uma amostra. Compre o pacote completo do Gerador de Vendas IA e receba textos, ângulos e conteúdos prontos para transformar ${data.produto} em uma oferta muito mais clara e persuasiva.`,
+      content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com mais clareza, mais contexto e argumentos comerciais adaptados ao seu público.`,
     },
   ];
 }
