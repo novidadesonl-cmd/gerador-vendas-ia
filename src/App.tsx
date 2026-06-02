@@ -195,18 +195,18 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow">Conteúdo pronto para vender • sem copy • sem prompt</span>
-          <h1>Crie conteúdos de venda prontos em poucos minutos, mesmo sem saber escrever copy.</h1>
+          <span className="eyebrow">Conteúdo pronto para vender • sem copy • sem roteiro</span>
+          <h1>Pare de travar na hora de criar conteúdo para vender.</h1>
           <p>
-            Informe o que você vende e receba uma amostra com diagnóstico, roteiro de Reels,
-            mensagem de WhatsApp, headline e CTA prontos para usar.
+            Informe o que você vende e receba textos prontos para transformar sua oferta em posts,
+            roteiros de Reels, mensagens de WhatsApp, headlines e CTAs.
           </p>
           <div className="hero-actions">
             <button className="primary-button" onClick={onStart}>
-              Gerar amostra grátis
+              Gerar minha amostra grátis
             </button>
             <button className="secondary-button" onClick={onPlans}>
-              Ver pacotes completos
+              Ver planos
             </button>
           </div>
         </div>
@@ -217,30 +217,64 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
             <span />
             <span />
           </div>
-          <p className="ai-label">Amostra comercial</p>
-          <h2>Sem travar na página em branco</h2>
+          <p className="ai-label">Sua oferta vira conteúdo</p>
+          <h2>Sem página em branco</h2>
           <ul>
             <li>Diagnóstico da oferta</li>
-            <li>Roteiro de Reels pronto</li>
-            <li>Mensagem de WhatsApp pronta</li>
-            <li>Headline e CTA prontos</li>
+            <li>Ângulos de venda</li>
+            <li>Roteiros e mensagens prontas</li>
+            <li>Headlines, CTAs e objeções</li>
           </ul>
-          <div className="pulse-card">Você informa a oferta. A página entrega a estrutura.</div>
+          <div className="pulse-card">Você informa a oferta. A IA monta a primeira versão.</div>
         </div>
       </section>
 
-      <section className="feature-grid" aria-label="Benefícios principais">
-        {[
-          ['Diagnóstico rápido', 'Entenda o que precisa ficar mais claro na sua oferta antes de publicar.'],
-          ['Conteúdo pronto', 'Receba textos para Reels, WhatsApp, headline e CTA sem estudar copywriting.'],
-          ['Venda com clareza', 'Copie a amostra, adapte se quiser e teste sua mensagem com mais segurança.'],
-        ].map(([title, text]) => (
-          <article className="feature-card" key={title}>
-            <span className="feature-icon">✧</span>
-            <h3>{title}</h3>
-            <p>{text}</p>
-          </article>
-        ))}
+      <section className="conversion-section">
+        <div className="section-heading">
+          <span className="eyebrow">O problema</span>
+          <h2>Você sabe que precisa postar. Mas trava na hora de escrever.</h2>
+          <p>
+            A dificuldade não é apenas falta de ideias. É não saber transformar o que você vende em
+            uma mensagem clara, persuasiva e pronta para publicar.
+          </p>
+        </div>
+        <div className="feature-grid">
+          {[
+            ['“O que eu posto hoje?”', 'Você abre o celular, tenta escrever, apaga, reescreve e acaba adiando a publicação.'],
+            ['“Como explico minha oferta?”', 'O produto existe, mas a mensagem fica confusa e o cliente não entende o valor.'],
+            ['“Como vendo sem parecer forçado?”', 'Sem estrutura, o conteúdo vira improviso e a oferta continua invisível.'],
+          ].map(([title, text]) => (
+            <article className="feature-card" key={title}>
+              <span className="feature-icon">!</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="conversion-section">
+        <div className="section-heading">
+          <span className="eyebrow">A solução</span>
+          <h2>O Gerador de Vendas IA transforma sua oferta em conteúdo pronto.</h2>
+          <p>
+            Você preenche o que vende, para quem vende, qual dor resolve e qual benefício entrega.
+            A ferramenta organiza essas informações em textos comerciais para copiar, adaptar e publicar.
+          </p>
+        </div>
+        <div className="feature-grid">
+          {[
+            ['Diagnóstico da oferta', 'Entenda o que precisa ficar mais claro para vender com menos improviso.'],
+            ['Roteiros e mensagens', 'Receba estruturas para Reels, WhatsApp, direct e divulgação diária.'],
+            ['Chamadas de venda', 'Use headlines, CTAs, ângulos e respostas para objeções sem começar do zero.'],
+          ].map(([title, text]) => (
+            <article className="feature-card" key={title}>
+              <span className="feature-icon">✓</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="conversion-section" aria-labelledby="como-funciona">
@@ -264,18 +298,107 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
         </div>
       </section>
 
+      <section className="conversion-section">
+        <div className="section-heading">
+          <span className="eyebrow">Antes e depois</span>
+          <h2>Saia do conteúdo travado para uma comunicação com direção.</h2>
+        </div>
+        <div className="feature-grid">
+          <article className="feature-card">
+            <span className="feature-icon">×</span>
+            <h3>Antes</h3>
+            <p>Você tenta escrever algo, sente insegurança, não sabe como explicar a oferta e deixa para depois.</p>
+          </article>
+          <article className="feature-card">
+            <span className="feature-icon">✓</span>
+            <h3>Depois</h3>
+            <p>Você informa sua oferta, recebe textos prontos e começa a divulgar com mais clareza.</p>
+          </article>
+          <article className="feature-card">
+            <span className="feature-icon">→</span>
+            <h3>Resultado prático</h3>
+            <p>Menos tempo parado na página em branco e mais peças comerciais prontas para testar.</p>
+          </article>
+        </div>
+      </section>
+
       <section className="conversion-section audience-section" aria-labelledby="para-quem-e">
         <div className="section-heading">
           <span className="eyebrow">Para quem é</span>
-          <h2 id="para-quem-e">Feito para quem vende online e precisa de mensagens mais claras</h2>
+          <h2 id="para-quem-e">Feito para quem vende online e precisa postar sem travar</h2>
           <p>Use para transformar uma ideia de oferta em conteúdo comercial direto e fácil de publicar.</p>
         </div>
         <div className="audience-list">
-          {['Afiliados', 'Infoprodutores', 'Prestadores de serviço', 'Pequenos negócios', 'Vendedores pelo WhatsApp'].map(
-            (audience) => (
-              <span key={audience}>{audience}</span>
-            ),
-          )}
+          {[
+            'Afiliados',
+            'Infoprodutores',
+            'Prestadores de serviço',
+            'Pequenos negócios',
+            'Vendedores pelo WhatsApp',
+            'Quem usa IA, mas não sabe pedir do jeito certo',
+          ].map((audience) => (
+            <span key={audience}>{audience}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="conversion-section">
+        <div className="section-heading">
+          <span className="eyebrow">Planos</span>
+          <h2>Escolha o nível de conteúdo que sua oferta precisa agora.</h2>
+          <p>Comece com uma amostra grátis ou avance para um dos pacotes pagos.</p>
+        </div>
+        <div className="plans-grid">
+          {[
+            ['Começar Agora', 'R$27', 'Diagnóstico objetivo, headlines, CTAs, mensagens curtas, ideias de post e roteiro curto de Reels.'],
+            ['Vender com Clareza', 'R$47', 'Diagnóstico completo, ângulos, 5 roteiros, 5 mensagens, 5 headlines, 5 CTAs e objeções.'],
+            ['30 Dias de Conteúdo', 'R$97', 'Calendário de 30 dias, ideias de posts, roteiros, WhatsApp, CTAs por etapa e sequência de divulgação.'],
+          ].map(([name, price, text]) => (
+            <article className="plan-card" key={name}>
+              <h3>{name}</h3>
+              <strong>{price}</strong>
+              <p>{text}</p>
+              <button className="primary-button plan-button" onClick={onPlans}>
+                Ver este plano
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="conversion-section">
+        <div className="section-heading">
+          <span className="eyebrow">Objeções comuns</span>
+          <h2>Não precisa saber copy, roteiro ou prompt para começar.</h2>
+        </div>
+        <div className="feature-grid">
+          {[
+            ['“Eu não sei usar IA.”', 'Você não precisa escrever prompt. Basta preencher os campos principais da sua oferta.'],
+            ['“Minha oferta é simples.”', 'Melhor ainda. Quanto mais simples a oferta, mais rápido a ferramenta ajuda a organizar a mensagem.'],
+            ['“Isso substitui uma copy profissional?”', 'Não. Ele entrega uma primeira estrutura comercial para você sair da página em branco e divulgar com clareza.'],
+          ].map(([title, text]) => (
+            <article className="feature-card" key={title}>
+              <span className="feature-icon">?</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="upgrade-banner">
+        <div>
+          <span className="eyebrow">Comece grátis</span>
+          <h2>Sua oferta não precisa continuar parada porque você não sabe o que postar.</h2>
+          <p>Gere uma amostra grátis e veja como sua comunicação pode ficar mais clara em poucos minutos.</p>
+        </div>
+        <div className="banner-actions">
+          <button className="primary-button" onClick={onStart}>
+            Gerar amostra grátis
+          </button>
+          <button className="secondary-button" onClick={onPlans}>
+            Ver planos pagos
+          </button>
         </div>
       </section>
     </>
