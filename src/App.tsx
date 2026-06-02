@@ -107,11 +107,11 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow">MVP visual • sem login • sem integração externa</span>
-          <h1>Transforme dados do seu produto em uma amostra de venda pronta para validar.</h1>
+          <span className="eyebrow">Conteúdo pronto para vender • sem copy • sem prompt</span>
+          <h1>Crie conteúdos de venda prontos em poucos minutos, mesmo sem saber escrever copy.</h1>
           <p>
-            Preencha um formulário simples e receba um diagnóstico, um ângulo comercial, um roteiro
-            de Reels, uma mensagem de WhatsApp, uma headline e um CTA para vender melhor.
+            Informe o que você vende e receba uma amostra com diagnóstico, roteiro de Reels,
+            mensagem de WhatsApp, headline e CTA prontos para usar.
           </p>
           <div className="hero-actions">
             <button className="primary-button" onClick={onStart}>
@@ -129,22 +129,23 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
             <span />
             <span />
           </div>
-          <p className="ai-label">IA Comercial</p>
-          <h2>Oferta detectada</h2>
+          <p className="ai-label">Amostra comercial</p>
+          <h2>Sem travar na página em branco</h2>
           <ul>
-            <li>Clareza da promessa</li>
-            <li>Mensagem por canal</li>
-            <li>Conteúdo com CTA</li>
+            <li>Diagnóstico da oferta</li>
+            <li>Roteiro de Reels pronto</li>
+            <li>Mensagem de WhatsApp pronta</li>
+            <li>Headline e CTA prontos</li>
           </ul>
-          <div className="pulse-card">Amostra pronta em segundos</div>
+          <div className="pulse-card">Você informa a oferta. A página entrega a estrutura.</div>
         </div>
       </section>
 
-      <section className="feature-grid">
+      <section className="feature-grid" aria-label="Benefícios principais">
         {[
-          ['Diagnóstico rápido', 'Entenda o ponto forte da sua oferta e o que precisa ficar mais claro.'],
-          ['Conteúdo prático', 'Receba textos simulados para Reels, WhatsApp e headline de venda.'],
-          ['Validação simples', 'Teste a percepção do público antes de criar um pacote completo.'],
+          ['Diagnóstico rápido', 'Entenda o que precisa ficar mais claro na sua oferta antes de publicar.'],
+          ['Conteúdo pronto', 'Receba textos para Reels, WhatsApp, headline e CTA sem estudar copywriting.'],
+          ['Venda com clareza', 'Copie a amostra, adapte se quiser e teste sua mensagem com mais segurança.'],
         ].map(([title, text]) => (
           <article className="feature-card" key={title}>
             <span className="feature-icon">✧</span>
@@ -152,6 +153,42 @@ function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => vo
             <p>{text}</p>
           </article>
         ))}
+      </section>
+
+      <section className="conversion-section" aria-labelledby="como-funciona">
+        <div className="section-heading">
+          <span className="eyebrow">Como funciona</span>
+          <h2 id="como-funciona">Da sua oferta ao conteúdo pronto em 3 passos</h2>
+          <p>Não precisa criar prompt, montar roteiro do zero ou saber fórmulas de copy.</p>
+        </div>
+        <div className="steps-grid">
+          {[
+            ['1', 'Informe os dados da sua oferta', 'Preencha produto, público, dor, benefício e canal principal.'],
+            ['2', 'Receba uma amostra personalizada', 'Veja diagnóstico, roteiro, WhatsApp, headline e CTA gerados a partir das suas respostas.'],
+            ['3', 'Copie, publique e venda com mais clareza', 'Use o conteúdo como ponto de partida para divulgar sua oferta sem travar.'],
+          ].map(([number, title, text]) => (
+            <article className="step-card" key={number}>
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="conversion-section audience-section" aria-labelledby="para-quem-e">
+        <div className="section-heading">
+          <span className="eyebrow">Para quem é</span>
+          <h2 id="para-quem-e">Feito para quem vende online e precisa de mensagens mais claras</h2>
+          <p>Use para transformar uma ideia de oferta em conteúdo comercial direto e fácil de publicar.</p>
+        </div>
+        <div className="audience-list">
+          {['Afiliados', 'Infoprodutores', 'Prestadores de serviço', 'Pequenos negócios', 'Vendedores pelo WhatsApp'].map(
+            (audience) => (
+              <span key={audience}>{audience}</span>
+            ),
+          )}
+        </div>
       </section>
     </>
   );
@@ -332,23 +369,38 @@ function PlansPage() {
     {
       name: 'Kit Express',
       price: 'R$27',
-      description: 'Ideal para validar uma oferta com peças essenciais.',
-      features: ['Diagnóstico objetivo', 'Headline e CTA', 'Mensagem curta de venda'],
+      description: 'Para quem quer sair da dúvida rápido com um pacote enxuto de venda.',
+      features: [
+        'Diagnóstico objetivo da oferta',
+        'Headline e CTA prontos para usar',
+        'Mensagem curta para WhatsApp ou direct',
+        'Indicado para validar uma promessa específica',
+      ],
       link: planLinks.express,
     },
     {
       name: 'Kit Venda Completo',
       price: 'R$47',
-      description: 'O pacote principal para lançar ou melhorar sua comunicação.',
-      features: ['Roteiros de conteúdo', 'WhatsApp persuasivo', 'Ângulos e objeções'],
+      description: 'Recomendado para transformar sua oferta em um kit prático de conteúdos de venda.',
+      features: [
+        'Diagnóstico comercial mais completo',
+        'Roteiros de Reels com gancho, problema, solução e CTA',
+        'Mensagens de WhatsApp prontas para abordagem e follow-up',
+        'Headlines, CTAs, ângulos e respostas para objeções',
+      ],
       link: planLinks.complete,
       featured: true,
     },
     {
       name: 'Conteúdo 30 Dias',
       price: 'R$97',
-      description: 'Planejamento de posts para manter constância comercial.',
-      features: ['Calendário mensal', 'Ideias por funil', 'Chamadas diárias para ação'],
+      description: 'Para quem precisa manter constância com ideias comerciais durante o mês.',
+      features: [
+        'Calendário mensal de publicações',
+        'Ideias por etapa do funil de venda',
+        'Chamadas diárias para ação',
+        'Sugestões para alternar posts, Reels e WhatsApp',
+      ],
       link: planLinks.days,
     },
   ];
@@ -357,14 +409,17 @@ function PlansPage() {
     <section className="plans-section">
       <div className="section-heading">
         <span className="eyebrow">Planos</span>
-        <h1>Escolha o pacote para acelerar suas vendas</h1>
-        <p>Links de compra são placeholders da Kiwify enquanto o MVP é validado.</p>
+        <h1>Escolha o pacote certo para receber conteúdo pronto de venda</h1>
+        <p>
+          Comece com o essencial, avance para o kit recomendado ou planeje 30 dias de conteúdo.
+          Links de compra são placeholders da Kiwify enquanto o MVP é validado.
+        </p>
       </div>
 
       <div className="plans-grid">
         {plans.map((plan) => (
           <article className={`plan-card ${plan.featured ? 'featured-plan' : ''}`} key={plan.name}>
-            {plan.featured && <span className="badge">Mais escolhido</span>}
+            {plan.featured && <span className="badge">Recomendado</span>}
             <h2>{plan.name}</h2>
             <p>{plan.description}</p>
             <strong>{plan.price}</strong>

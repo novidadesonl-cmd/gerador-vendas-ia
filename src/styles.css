@@ -124,6 +124,8 @@ a:hover {
 .hero-copy,
 .hero-card,
 .feature-card,
+.step-card,
+.conversion-section,
 .sample-form,
 .result-card,
 .plan-card,
@@ -311,6 +313,7 @@ li {
 }
 
 .feature-grid,
+.steps-grid,
 .result-grid,
 .plans-grid,
 .sample-form {
@@ -324,11 +327,65 @@ li {
 }
 
 .feature-card,
+.step-card,
 .result-card,
 .plan-card,
 .empty-state {
   border-radius: 28px;
   padding: 24px;
+}
+
+.conversion-section {
+  margin-top: 28px;
+  padding: clamp(26px, 4vw, 42px);
+  border-radius: 34px;
+}
+
+.conversion-section .section-heading {
+  margin-bottom: 24px;
+}
+
+.conversion-section h2 {
+  max-width: 760px;
+  margin-inline: auto;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.steps-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.step-card {
+  background: rgba(2, 6, 23, 0.26);
+}
+
+.step-card span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  place-items: center;
+  border-radius: 50%;
+  color: #06231e;
+  background: linear-gradient(135deg, #5eead4, #86efac);
+  font-weight: 900;
+}
+
+.audience-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.audience-list span {
+  padding: 12px 16px;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  border-radius: 999px;
+  color: #ccfbf1;
+  background: rgba(20, 184, 166, 0.12);
+  font-weight: 800;
 }
 
 .feature-icon {
@@ -495,6 +552,7 @@ select:focus {
   }
 
   .feature-grid,
+  .steps-grid,
   .result-grid,
   .plans-grid,
   .sample-form {
@@ -535,6 +593,7 @@ select:focus {
 
   .hero-copy,
   .hero-card,
+  .conversion-section,
   .sample-form,
   .upgrade-banner {
     padding: 22px;
