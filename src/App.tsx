@@ -1,6 +1,16 @@
 import { FormEvent, useMemo, useState } from 'react';
 
-type Page = 'home' | 'sample' | 'result' | 'plans' | 'starterKit' | 'salesClarityKit';
+type Page =
+  | 'home'
+  | 'sample'
+  | 'result'
+  | 'plans'
+  | 'access'
+  | 'starterKit'
+  | 'salesClarityKit'
+  | 'content30Kit';
+
+type PaidPage = 'starterKit' | 'salesClarityKit' | 'content30Kit';
 
 type FormData = {
   nome: string;
@@ -35,11 +45,18 @@ const planLinks = {
   days: 'https://pay.kiwify.com.br/MA8CXB2',
 };
 
+const accessCodes: Record<string, PaidPage> = {
+  COMECE27: 'starterKit',
+  CLAREZA47: 'salesClarityKit',
+  CONTEUDO97: 'content30Kit',
+};
+
 function App() {
   const [page, setPage] = useState<Page>('home');
   const [form, setForm] = useState<FormData>(initialForm);
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
   const [copiedBlock, setCopiedBlock] = useState<string | null>(null);
+  const [pendingPaidPage, setPendingPaidPage] = useState<PaidPage | null>(null);
 
   const resultBlocks = useMemo(
     () => (submittedData ? generateSample(submittedData) : []),
@@ -53,6 +70,10 @@ function App() {
     () => (submittedData ? generateSalesClarityKit(submittedData) : []),
     [submittedData],
   );
+  const content30Blocks = useMemo(
+    () => (submittedData ? generateContent30Kit(submittedData) : []),
+    [submittedData],
+  );
 
   const goTo = (nextPage: Page) => {
     setCopiedBlock(null);
@@ -63,6 +84,14 @@ function App() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmittedData(form);
+
+    if (pendingPaidPage) {
+      const nextPage = pendingPaidPage;
+      setPendingPaidPage(null);
+      goTo(nextPage);
+      return;
+    }
+
     goTo('result');
   };
 
@@ -71,6 +100,16 @@ function App() {
     await navigator.clipboard.writeText(text);
     setCopiedBlock(block.title);
     window.setTimeout(() => setCopiedBlock(null), 1800);
+  };
+
+  const unlockPaidPage = (paidPage: PaidPage) => {
+    if (submittedData) {
+      goTo(paidPage);
+      return;
+    }
+
+    setPendingPaidPage(paidPage);
+    goTo('sample');
   };
 
   return (
@@ -85,13 +124,14 @@ function App() {
           <button onClick={() => goTo('home')}>Início</button>
           <button onClick={() => goTo('sample')}>Amostra grátis</button>
           <button onClick={() => goTo('plans')}>Planos</button>
+          <button onClick={() => goTo('access')}>Acessar plano pago</button>
         </nav>
       </header>
 
       <main>
         {page === 'home' && <HomePage onStart={() => goTo('sample')} onPlans={() => goTo('plans')} />}
         {page === 'sample' && (
-          <SampleForm form={form} setForm={setForm} onSubmit={handleSubmit} />
+          <SampleForm form={form} setForm={setForm} onSubmit={handleSubmit} pendingPaidPage={pendingPaidPage} />
         )}
         {page === 'result' && submittedData && (
           <ResultPage
@@ -104,9 +144,12 @@ function App() {
           />
         )}
         {page === 'result' && !submittedData && <EmptyResult onStart={() => goTo('sample')} />}
+        {page === 'access' && <AccessPage onActivate={unlockPaidPage} />}
         {page === 'starterKit' && submittedData && (
-          <StarterKitPage
-            data={submittedData}
+          <PaidDeliveryPage
+            eyebrow="Plano liberado • R$27"
+            title={`${submittedData.nome}, seu kit Começar Agora está pronto.`}
+            description="Entrega simulada do plano de entrada: diagnóstico objetivo, headlines, CTAs, mensagens curtas, ideias de post e um roteiro curto de Reels."
             blocks={starterKitBlocks}
             copiedBlock={copiedBlock}
             onCopy={copyBlock}
@@ -114,10 +157,12 @@ function App() {
             onNewSample={() => goTo('sample')}
           />
         )}
-        {page === 'starterKit' && !submittedData && <EmptyStarterKit onStart={() => goTo('sample')} />}
+        {page === 'starterKit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
         {page === 'salesClarityKit' && submittedData && (
-          <SalesClarityKitPage
-            data={submittedData}
+          <PaidDeliveryPage
+            eyebrow="Plano liberado • R$47"
+            title={`${submittedData.nome}, seu kit Vender com Clareza está pronto.`}
+            description="Entrega simulada do kit completo: diagnóstico comercial, ângulos de venda, roteiros de Reels, mensagens de WhatsApp, headlines, CTAs e respostas para objeções."
             blocks={salesClarityBlocks}
             copiedBlock={copiedBlock}
             onCopy={copyBlock}
@@ -125,13 +170,21 @@ function App() {
             onNewSample={() => goTo('sample')}
           />
         )}
-        {page === 'salesClarityKit' && !submittedData && <EmptySalesClarityKit onStart={() => goTo('sample')} />}
-        {page === 'plans' && (
-          <PlansPage
-            onViewStarterKit={() => goTo(submittedData ? 'starterKit' : 'sample')}
-            onViewSalesClarityKit={() => goTo(submittedData ? 'salesClarityKit' : 'sample')}
+        {page === 'salesClarityKit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
+        {page === 'content30Kit' && submittedData && (
+          <PaidDeliveryPage
+            eyebrow="Plano liberado • R$97"
+            title={`${submittedData.nome}, seus 30 dias de conteúdo estão prontos.`}
+            description="Entrega simulada do plano mensal: calendário de 30 dias, ideias de posts, roteiros de Reels, mensagens de WhatsApp, CTAs por etapa e sequência de divulgação."
+            blocks={content30Blocks}
+            copiedBlock={copiedBlock}
+            onCopy={copyBlock}
+            onPlans={() => goTo('plans')}
+            onNewSample={() => goTo('sample')}
           />
         )}
+        {page === 'content30Kit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
+        {page === 'plans' && <PlansPage onAccess={() => goTo('access')} />}
       </main>
     </div>
   );
@@ -233,10 +286,12 @@ function SampleForm({
   form,
   setForm,
   onSubmit,
+  pendingPaidPage,
 }: {
   form: FormData;
   setForm: (form: FormData) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  pendingPaidPage: PaidPage | null;
 }) {
   const updateField = (field: keyof FormData, value: string) => {
     setForm({ ...form, [field]: value });
@@ -245,9 +300,13 @@ function SampleForm({
   return (
     <section className="form-section">
       <div className="section-heading">
-        <span className="eyebrow">Amostra grátis</span>
+        <span className="eyebrow">{pendingPaidPage ? 'Dados da entrega paga' : 'Amostra grátis'}</span>
         <h1>Conte sobre sua oferta</h1>
-        <p>Use respostas objetivas. A simulação vai adaptar a linguagem aos dados informados.</p>
+        <p>
+          {pendingPaidPage
+            ? 'Código validado. Preencha os dados da sua oferta para gerar a entrega do plano comprado.'
+            : 'Use respostas objetivas. A simulação vai adaptar a linguagem aos dados informados.'}
+        </p>
       </div>
 
       <form className="sample-form" onSubmit={onSubmit}>
@@ -293,9 +352,9 @@ function SampleForm({
         </label>
 
         <div className="form-footer">
-          <p>Ao enviar, você verá uma amostra simulada. Nenhum dado será salvo.</p>
+          <p>{pendingPaidPage ? 'Após enviar, o kit pago será gerado na tela.' : 'Ao enviar, você verá uma amostra simulada. Nenhum dado será salvo.'}</p>
           <button className="primary-button" type="submit">
-            Gerar resultado grátis
+            {pendingPaidPage ? 'Gerar entrega do plano' : 'Gerar resultado grátis'}
           </button>
         </div>
       </form>
@@ -375,15 +434,19 @@ function ResultPage({
   );
 }
 
-function StarterKitPage({
-  data,
+function PaidDeliveryPage({
+  eyebrow,
+  title,
+  description,
   blocks,
   copiedBlock,
   onCopy,
   onPlans,
   onNewSample,
 }: {
-  data: FormData;
+  eyebrow: string;
+  title: string;
+  description: string;
   blocks: ResultBlock[];
   copiedBlock: string | null;
   onCopy: (block: ResultBlock) => void;
@@ -393,31 +456,25 @@ function StarterKitPage({
   return (
     <section className="result-section">
       <div className="section-heading">
-        <span className="eyebrow">Exemplo do plano R$27</span>
-        <h1>{data.nome}, veja o que o Começar Agora pode entregar.</h1>
-        <p>
-          Este é um exemplo simulado do kit de entrada: diagnóstico objetivo, headlines, CTAs,
-          mensagens curtas, ideias de post e um roteiro curto de Reels.
-        </p>
+        <span className="eyebrow">{eyebrow}</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
       </div>
 
       <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
 
       <div className="upgrade-banner">
         <div>
-          <span className="eyebrow">Começar Agora</span>
-          <h2>Quer receber esse kit para a sua oferta?</h2>
-          <p>Compre o plano R$27 para tirar sua oferta da página em branco com peças iniciais de venda.</p>
+          <span className="eyebrow">Entrega liberada</span>
+          <h2>Copie os blocos e use na sua divulgação.</h2>
+          <p>Esta versão é simulada para MVP. A etapa profissional pode integrar pagamento, login e histórico.</p>
         </div>
         <div className="banner-actions">
           <button className="secondary-button" onClick={onNewSample}>
-            Editar dados
+            Gerar com outros dados
           </button>
-          <a className="primary-button" href={planLinks.express} target="_blank" rel="noreferrer">
-            Comprar por R$27
-          </a>
-          <button className="secondary-button" onClick={onPlans}>
-            Ver planos
+          <button className="primary-button" onClick={onPlans}>
+            Ver outros planos
           </button>
         </div>
       </div>
@@ -425,52 +482,46 @@ function StarterKitPage({
   );
 }
 
-function SalesClarityKitPage({
-  data,
-  blocks,
-  copiedBlock,
-  onCopy,
-  onPlans,
-  onNewSample,
-}: {
-  data: FormData;
-  blocks: ResultBlock[];
-  copiedBlock: string | null;
-  onCopy: (block: ResultBlock) => void;
-  onPlans: () => void;
-  onNewSample: () => void;
-}) {
+function AccessPage({ onActivate }: { onActivate: (paidPage: PaidPage) => void }) {
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+
+  const handleAccess = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedCode = code.trim().toUpperCase();
+    const paidPage = accessCodes[normalizedCode];
+
+    if (!paidPage) {
+      setError('Código inválido. Confira o código recebido após a compra.');
+      return;
+    }
+
+    setError('');
+    onActivate(paidPage);
+  };
+
   return (
-    <section className="result-section">
+    <section className="form-section">
       <div className="section-heading">
-        <span className="eyebrow">Exemplo do plano R$47</span>
-        <h1>{data.nome}, veja o que o Vender com Clareza pode entregar.</h1>
-        <p>
-          Este é um exemplo simulado do kit completo: diagnóstico comercial, ângulos de venda,
-          roteiros de Reels, mensagens de WhatsApp, headlines, CTAs e respostas para objeções.
-        </p>
+        <span className="eyebrow">Acesso pago</span>
+        <h1>Acesse a entrega do plano comprado</h1>
+        <p>Digite o e-mail da compra e o código de acesso recebido após o pagamento.</p>
       </div>
 
-      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
-
-      <div className="upgrade-banner">
-        <div>
-          <span className="eyebrow">Vender com Clareza</span>
-          <h2>Quer receber o kit completo para a sua oferta?</h2>
-          <p>Compre o plano R$47 para transformar sua oferta em mensagens, roteiros e argumentos prontos.</p>
-        </div>
-        <div className="banner-actions">
-          <button className="secondary-button" onClick={onNewSample}>
-            Editar dados
-          </button>
-          <a className="primary-button" href={planLinks.complete} target="_blank" rel="noreferrer">
-            Comprar por R$47
-          </a>
-          <button className="secondary-button" onClick={onPlans}>
-            Ver planos
+      <form className="sample-form" onSubmit={handleAccess}>
+        <Field label="E-mail da compra" type="email" value={email} onChange={setEmail} />
+        <Field label="Código de acesso" value={code} onChange={setCode} />
+        <div className="form-footer">
+          <p>
+            Códigos configurados para o MVP: COMECE27, CLAREZA47 e CONTEUDO97. Depois, isso pode ser validado automaticamente pela Kiwify.
+          </p>
+          <button className="primary-button" type="submit">
+            Acessar plano pago
           </button>
         </div>
-      </div>
+        {error && <p>{error}</p>}
+      </form>
     </section>
   );
 }
@@ -513,11 +564,11 @@ function EmptyResult({ onStart }: { onStart: () => void }) {
   );
 }
 
-function EmptyStarterKit({ onStart }: { onStart: () => void }) {
+function EmptyPaidDelivery({ onStart }: { onStart: () => void }) {
   return (
     <section className="empty-state">
-      <h1>Preencha sua oferta antes de ver o exemplo do plano.</h1>
-      <p>O plano Começar Agora usa os dados da sua oferta para montar o kit inicial.</p>
+      <h1>Preencha sua oferta antes de gerar a entrega paga.</h1>
+      <p>A entrega usa os dados da sua oferta para montar os textos do plano comprado.</p>
       <button className="primary-button" onClick={onStart}>
         Preencher minha oferta
       </button>
@@ -525,25 +576,7 @@ function EmptyStarterKit({ onStart }: { onStart: () => void }) {
   );
 }
 
-function EmptySalesClarityKit({ onStart }: { onStart: () => void }) {
-  return (
-    <section className="empty-state">
-      <h1>Preencha sua oferta antes de ver o exemplo do plano completo.</h1>
-      <p>O plano Vender com Clareza usa os dados da sua oferta para montar um kit comercial mais robusto.</p>
-      <button className="primary-button" onClick={onStart}>
-        Preencher minha oferta
-      </button>
-    </section>
-  );
-}
-
-function PlansPage({
-  onViewStarterKit,
-  onViewSalesClarityKit,
-}: {
-  onViewStarterKit: () => void;
-  onViewSalesClarityKit: () => void;
-}) {
+function PlansPage({ onAccess }: { onAccess: () => void }) {
   const plans = [
     {
       name: 'Começar Agora',
@@ -556,7 +589,6 @@ function PlansPage({
         'Indicado para validar uma promessa específica',
       ],
       link: planLinks.express,
-      preview: 'starter',
     },
     {
       name: 'Vender com Clareza',
@@ -570,7 +602,6 @@ function PlansPage({
       ],
       link: planLinks.complete,
       featured: true,
-      preview: 'clarity',
     },
     {
       name: '30 Dias de Conteúdo',
@@ -591,7 +622,10 @@ function PlansPage({
       <div className="section-heading">
         <span className="eyebrow">Planos</span>
         <h1>Escolha o pacote certo para receber conteúdo pronto de venda</h1>
-        <p>Comece com o essencial, avance para o plano recomendado ou planeje 30 dias de conteúdo.</p>
+        <p>Compre seu plano e use o código recebido para liberar a entrega correspondente.</p>
+        <button className="secondary-button" onClick={onAccess}>
+          Acessar plano pago
+        </button>
       </div>
 
       <div className="plans-grid">
@@ -606,19 +640,12 @@ function PlansPage({
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            {plan.preview === 'starter' && (
-              <button className="secondary-button plan-button" onClick={onViewStarterKit}>
-                Ver exemplo do que recebo
-              </button>
-            )}
-            {plan.preview === 'clarity' && (
-              <button className="secondary-button plan-button" onClick={onViewSalesClarityKit}>
-                Ver exemplo do kit completo
-              </button>
-            )}
             <a className="primary-button plan-button" href={plan.link} target="_blank" rel="noreferrer">
               Comprar agora
             </a>
+            <button className="secondary-button plan-button" onClick={onAccess}>
+              Já comprei / acessar
+            </button>
           </article>
         ))}
       </div>
@@ -695,6 +722,50 @@ function generateSalesClarityKit(data: FormData): ResultBlock[] {
     {
       title: '7. Respostas para objeções comuns',
       content: `1. "Não sei se isso funciona para mim."\nResposta: A estrutura parte dos dados da sua própria oferta, então os textos são gerados com base no que você vende, para quem vende e qual dor resolve.\n\n2. "Eu não sei usar IA."\nResposta: Você não precisa escrever prompt. Basta preencher os campos principais e usar os textos como ponto de partida.\n\n3. "Já tentei postar e não vendeu."\nResposta: Postar sem direção é diferente de comunicar uma oferta com dor, benefício e CTA. O foco aqui é clareza comercial.\n\n4. "Não tenho tempo para criar conteúdo."\nResposta: O objetivo é justamente reduzir o tempo de criação e entregar uma primeira estrutura pronta para adaptar e publicar.\n\n5. "Tenho medo de comprar e não usar."\nResposta: O plano foi desenhado para gerar peças práticas: roteiros, mensagens, headlines, CTAs, ângulos e objeções em um único kit.`,
+    },
+  ];
+}
+
+function generateContent30Kit(data: FormData): ResultBlock[] {
+  const produto = data.produto.trim();
+  const publico = data.publico.trim();
+  const dor = data.dor.trim();
+  const beneficio = data.beneficio.trim();
+
+  return [
+    {
+      title: '1. Calendário de 30 dias',
+      content: Array.from({ length: 30 }, (_, index) => {
+        const day = index + 1;
+        const themes = [
+          `Dor principal: mostre como ${dor} aparece na rotina de ${publico}.`,
+          `Antes e depois: contraste a situação atual com o ganho de ${beneficio}.`,
+          `Prova de clareza: explique em linguagem simples o que ${produto} resolve.`,
+          `Erro comum: mostre uma decisão que mantém o público travado.`,
+          `Convite: chame a pessoa para conhecer o próximo passo.`,
+        ];
+        return `Dia ${day}: ${themes[index % themes.length]}`;
+      }).join('\n'),
+    },
+    {
+      title: '2. Ideias de posts por semana',
+      content: `Semana 1: posts de dor, identificação e problema escondido.\n\nSemana 2: posts educativos explicando por que ${dor} atrapalha a venda ou decisão.\n\nSemana 3: posts de solução mostrando como ${produto} ajuda a chegar em ${beneficio}.\n\nSemana 4: posts de conversão com convite, urgência leve, bastidores e chamada para compra.`,
+    },
+    {
+      title: '3. Roteiros de Reels para o mês',
+      content: `1. Gancho: Você ainda trava na hora de vender?\nProblema: A oferta fica confusa quando a dor não é explicada.\nSolução: ${produto} organiza a mensagem.\nCTA: Comece hoje.\n\n2. Gancho: O cliente não compra o que não entende.\nProblema: Mensagens soltas reduzem desejo.\nSolução: Use roteiro, headline e CTA.\nCTA: Gere seu conteúdo.\n\n3. Gancho: Sua oferta precisa de clareza, não de mais improviso.\nProblema: Postar sem direção cansa e não vende.\nSolução: Planeje o mês com uma sequência.\nCTA: Veja o plano de 30 dias.\n\n4. Gancho: E se seu conteúdo já começasse pronto?\nProblema: A página em branco atrasa a divulgação.\nSolução: ${produto} cria uma estrutura inicial.\nCTA: Quero 30 dias de conteúdo.\n\n5. Gancho: Vender todo dia não precisa ser complicado.\nProblema: Falta consistência e mensagem clara.\nSolução: Use um calendário com temas comerciais.\nCTA: Acesse o plano mensal.`,
+    },
+    {
+      title: '4. Mensagens de WhatsApp para divulgação',
+      content: `1. Oi, tudo bem? Estou organizando uma forma mais simples de ajudar ${publico} a sair de ${dor} e chegar em ${beneficio}. Quer que eu te mostre?\n\n2. Passei para te mostrar o ${produto}. Ele foi pensado para quem precisa de mais clareza antes de vender ou divulgar.\n\n3. Se hoje ${dor} está atrapalhando sua decisão, talvez esse seja um bom momento para olhar para uma solução mais simples.\n\n4. Tenho um material que mostra como transformar essa dificuldade em uma mensagem mais clara. Quer receber?\n\n5. Posso te enviar os detalhes do ${produto} e explicar qual plano faz mais sentido para você?`,
+    },
+    {
+      title: '5. CTAs por etapa do funil',
+      content: `Topo de funil:\n1. Salve para lembrar depois.\n2. Compartilhe com alguém que precisa vender com mais clareza.\n3. Comente "clareza" para receber o próximo passo.\n\nMeio de funil:\n1. Quer entender como isso se aplica à sua oferta?\n2. Me chame no WhatsApp para ver um exemplo.\n3. Veja qual plano combina com seu momento.\n\nFundo de funil:\n1. Comprar agora.\n2. Quero meu conteúdo pronto.\n3. Acessar o plano de 30 dias.`,
+    },
+    {
+      title: '6. Sequência de divulgação',
+      content: `Dia 1 a 3: publique conteúdos de dor e identificação.\n\nDia 4 a 7: explique os erros que mantêm ${publico} preso em ${dor}.\n\nDia 8 a 14: apresente o ${produto} como solução prática.\n\nDia 15 a 21: publique roteiros, posts e mensagens com exemplos de antes e depois.\n\nDia 22 a 30: aumente os CTAs, responda objeções e direcione para a compra.`,
     },
   ];
 }
