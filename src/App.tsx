@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
 
-type Page = 'home' | 'sample' | 'result' | 'plans';
+type Page = 'home' | 'sample' | 'result' | 'plans' | 'starterKit';
 
 type FormData = {
   nome: string;
@@ -43,6 +43,10 @@ function App() {
 
   const resultBlocks = useMemo(
     () => (submittedData ? generateSample(submittedData) : []),
+    [submittedData],
+  );
+  const starterKitBlocks = useMemo(
+    () => (submittedData ? generateStarterKit(submittedData) : []),
     [submittedData],
   );
 
@@ -96,7 +100,20 @@ function App() {
           />
         )}
         {page === 'result' && !submittedData && <EmptyResult onStart={() => goTo('sample')} />}
-        {page === 'plans' && <PlansPage />}
+        {page === 'starterKit' && submittedData && (
+          <StarterKitPage
+            data={submittedData}
+            blocks={starterKitBlocks}
+            copiedBlock={copiedBlock}
+            onCopy={copyBlock}
+            onPlans={() => goTo('plans')}
+            onNewSample={() => goTo('sample')}
+          />
+        )}
+        {page === 'starterKit' && !submittedData && <EmptyStarterKit onStart={() => goTo('sample')} />}
+        {page === 'plans' && (
+          <PlansPage onViewStarterKit={() => goTo(submittedData ? 'starterKit' : 'sample')} />
+        )}
       </main>
     </div>
   );
@@ -319,19 +336,7 @@ function ResultPage({
         </p>
       </div>
 
-      <div className="result-grid">
-        {blocks.map((block) => (
-          <article className="result-card" key={block.title}>
-            <div className="result-card-header">
-              <h2>{block.title}</h2>
-              <button className="copy-button" onClick={() => onCopy(block)}>
-                {copiedBlock === block.title ? 'Copiado!' : 'Copiar'}
-              </button>
-            </div>
-            <p style={{ whiteSpace: 'pre-line' }}>{block.content}</p>
-          </article>
-        ))}
-      </div>
+      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
 
       <div className="upgrade-banner">
         <div>
@@ -352,6 +357,82 @@ function ResultPage({
   );
 }
 
+function StarterKitPage({
+  data,
+  blocks,
+  copiedBlock,
+  onCopy,
+  onPlans,
+  onNewSample,
+}: {
+  data: FormData;
+  blocks: ResultBlock[];
+  copiedBlock: string | null;
+  onCopy: (block: ResultBlock) => void;
+  onPlans: () => void;
+  onNewSample: () => void;
+}) {
+  return (
+    <section className="result-section">
+      <div className="section-heading">
+        <span className="eyebrow">Exemplo do plano R$27</span>
+        <h1>{data.nome}, veja o que o Começar Agora pode entregar.</h1>
+        <p>
+          Este é um exemplo simulado do kit de entrada: diagnóstico objetivo, headlines, CTAs,
+          mensagens curtas, ideias de post e um roteiro curto de Reels.
+        </p>
+      </div>
+
+      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
+
+      <div className="upgrade-banner">
+        <div>
+          <span className="eyebrow">Começar Agora</span>
+          <h2>Quer receber esse kit para a sua oferta?</h2>
+          <p>Compre o plano R$27 para tirar sua oferta da página em branco com peças iniciais de venda.</p>
+        </div>
+        <div className="banner-actions">
+          <button className="secondary-button" onClick={onNewSample}>
+            Editar dados
+          </button>
+          <a className="primary-button" href={planLinks.express} target="_blank" rel="noreferrer">
+            Comprar por R$27
+          </a>
+          <button className="secondary-button" onClick={onPlans}>
+            Ver planos
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlockGrid({
+  blocks,
+  copiedBlock,
+  onCopy,
+}: {
+  blocks: ResultBlock[];
+  copiedBlock: string | null;
+  onCopy: (block: ResultBlock) => void;
+}) {
+  return (
+    <div className="result-grid">
+      {blocks.map((block) => (
+        <article className="result-card" key={block.title}>
+          <div className="result-card-header">
+            <h2>{block.title}</h2>
+            <button className="copy-button" onClick={() => onCopy(block)}>
+              {copiedBlock === block.title ? 'Copiado!' : 'Copiar'}
+            </button>
+          </div>
+          <p style={{ whiteSpace: 'pre-line' }}>{block.content}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function EmptyResult({ onStart }: { onStart: () => void }) {
   return (
     <section className="empty-state">
@@ -364,7 +445,19 @@ function EmptyResult({ onStart }: { onStart: () => void }) {
   );
 }
 
-function PlansPage() {
+function EmptyStarterKit({ onStart }: { onStart: () => void }) {
+  return (
+    <section className="empty-state">
+      <h1>Preencha sua oferta antes de ver o exemplo do plano.</h1>
+      <p>O plano Começar Agora usa os dados da sua oferta para montar o kit inicial.</p>
+      <button className="primary-button" onClick={onStart}>
+        Preencher minha oferta
+      </button>
+    </section>
+  );
+}
+
+function PlansPage({ onViewStarterKit }: { onViewStarterKit: () => void }) {
   const plans = [
     {
       name: 'Começar Agora',
@@ -377,6 +470,7 @@ function PlansPage() {
         'Indicado para validar uma promessa específica',
       ],
       link: planLinks.express,
+      preview: true,
     },
     {
       name: 'Vender com Clareza',
@@ -425,6 +519,11 @@ function PlansPage() {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
+            {plan.preview && (
+              <button className="secondary-button plan-button" onClick={onViewStarterKit}>
+                Ver exemplo do que recebo
+              </button>
+            )}
             <a className="primary-button plan-button" href={plan.link} target="_blank" rel="noreferrer">
               Comprar agora
             </a>
@@ -433,6 +532,40 @@ function PlansPage() {
       </div>
     </section>
   );
+}
+
+function generateStarterKit(data: FormData): ResultBlock[] {
+  const produto = data.produto.trim();
+  const publico = data.publico.trim();
+  const dor = data.dor.trim();
+  const beneficio = data.beneficio.trim();
+
+  return [
+    {
+      title: '1. Diagnóstico objetivo da oferta',
+      content: `${produto} tem potencial porque resolve uma dificuldade clara de ${publico}: ${dor}. Para vender melhor, a comunicação precisa mostrar a situação antes, o custo de continuar parado e o ganho prático de alcançar ${beneficio}.`,
+    },
+    {
+      title: '2. Três headlines prontas',
+      content: `1. ${beneficio} sem deixar ${dor} travar sua venda.\n\n2. Pare de explicar sua oferta de qualquer jeito e mostre por que ${produto} importa.\n\n3. Transforme uma oferta confusa em uma mensagem simples, direta e pronta para vender.`,
+    },
+    {
+      title: '3. Três CTAs prontos',
+      content: `1. Quero começar agora.\n\n2. Me envie o próximo passo.\n\n3. Quero tirar minha oferta da página em branco.`,
+    },
+    {
+      title: '4. Três mensagens curtas para WhatsApp ou direct',
+      content: `1. Oi, tudo bem? Vi que muita gente trava na hora de vender porque não sabe como explicar a própria oferta. O ${produto} ajuda a organizar essa mensagem de forma mais clara. Quer que eu te mostre?\n\n2. Você já tem uma oferta, mas sente que a comunicação ainda não está clara? Posso te mostrar uma forma simples de transformar isso em conteúdo de venda.\n\n3. Se hoje ${dor} está dificultando sua venda, o ${produto} pode ajudar você a chegar em ${beneficio} com uma mensagem mais direta. Quer entender como funciona?`,
+    },
+    {
+      title: '5. Três ideias de post',
+      content: `1. Post de dor: mostre o que acontece quando ${publico} tenta vender sem clareza.\n\n2. Post de antes e depois: compare uma oferta confusa com uma mensagem simples e objetiva.\n\n3. Post de convite: chame a pessoa para testar uma forma mais rápida de transformar a oferta em conteúdo pronto.`,
+    },
+    {
+      title: '6. Um roteiro curto de Reels',
+      content: `Gancho: Você tem uma oferta, mas trava na hora de explicar o que vende?\n\nProblema: Isso acontece porque muitas pessoas tentam vender sem organizar a dor, o benefício e a promessa principal.\n\nSolução: O ${produto} transforma essas informações em textos prontos para usar.\n\nCTA: Quer tirar sua oferta da página em branco? Comece agora.`,
+    },
+  ];
 }
 
 function generateSample(data: FormData): ResultBlock[] {
