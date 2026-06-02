@@ -1,773 +1,643 @@
 import { FormEvent, useMemo, useState } from 'react';
 
-type Page =
-  | 'home'
-  | 'sample'
-  | 'result'
-  | 'plans'
-  | 'access'
-  | 'starterKit'
-  | 'salesClarityKit'
-  | 'content30Kit';
+type Page = 'home' | 'gerador' | 'biblioteca' | 'guia' | 'planos' | 'ativar' | 'obrigado';
 
-type PaidPage = 'starterKit' | 'salesClarityKit' | 'content30Kit';
+type PromptCategory =
+  | 'reels'
+  | 'post'
+  | 'legenda'
+  | 'anuncio'
+  | 'whatsapp'
+  | 'objecoes'
+  | 'pagina'
+  | 'calendario'
+  | 'humanizar'
+  | 'oferta';
 
-type FormData = {
-  nome: string;
-  email: string;
+type PromptForm = {
+  nicho: string;
   produto: string;
   publico: string;
   dor: string;
-  beneficio: string;
+  desejo: string;
   tom: string;
   canal: string;
+  objetivo: string;
+  observacoes: string;
 };
 
-type ResultBlock = {
+type PromptTemplate = {
+  id: PromptCategory;
+  label: string;
+  description: string;
+  role: string;
+  output: string;
+  example: PromptForm;
+};
+
+type LibraryItem = {
   title: string;
-  content: string;
+  category: string;
+  when: string;
+  target?: PromptCategory;
 };
 
-const initialForm: FormData = {
-  nome: '',
-  email: '',
+const initialForm: PromptForm = {
+  nicho: '',
   produto: '',
   publico: '',
   dor: '',
-  beneficio: '',
-  tom: 'Direto e persuasivo',
+  desejo: '',
+  tom: 'Direto, claro e humano',
   canal: 'Instagram',
+  objetivo: 'Gerar interesse e levar para o WhatsApp',
+  observacoes: '',
 };
 
-const planLinks = {
-  express: 'https://pay.kiwify.com.br/XrpQAEr',
-  complete: 'https://pay.kiwify.com.br/5VBTVxR',
-  days: 'https://pay.kiwify.com.br/MA8CXB2',
+const checkoutLinks = {
+  plan27: 'https://pay.kiwify.com.br/SEU-LINK-27',
+  plan47: 'https://pay.kiwify.com.br/SEU-LINK-47',
+  plan97: 'https://pay.kiwify.com.br/SEU-LINK-97',
 };
 
-const accessCodes: Record<string, PaidPage> = {
-  COMECE27: 'starterKit',
-  CLAREZA47: 'salesClarityKit',
-  CONTEUDO97: 'content30Kit',
+const accessCodes: Record<string, string> = {
+  COMANDO27: 'Kit Inicial R$27',
+  COMANDO47: 'Gerador Interativo R$47',
+  COMANDO97: 'Comando Pronto IA Pro R$97',
 };
+
+const templates: PromptTemplate[] = [
+  {
+    id: 'reels',
+    label: 'Roteiro de Reels/Shorts/TikTok',
+    description: 'Crie um roteiro curto com gancho, cena, desenvolvimento e CTA.',
+    role: 'Você é um estrategista de vídeos curtos e copywriter de retenção para Reels, Shorts e TikTok.',
+    output: 'Entregue 3 roteiros em formato: gancho, cena, desenvolvimento, frase de impacto e CTA. Cada roteiro deve ter até 45 segundos.',
+    example: {
+      nicho: 'Estética facial',
+      produto: 'Limpeza de pele',
+      publico: 'Mulheres de 25 a 45 anos',
+      dor: 'Pele oleosa, cravos e sensação de rosto pesado',
+      desejo: 'Ter uma pele limpa, leve e mais cuidada',
+      tom: 'Profissional, direto e acolhedor',
+      canal: 'Instagram Reels',
+      objetivo: 'Gerar agendamentos pelo WhatsApp',
+      observacoes: 'Evitar promessas de resultado milagroso.',
+    },
+  },
+  {
+    id: 'post',
+    label: 'Post de Instagram',
+    description: 'Crie um post com ideia central, texto e CTA.',
+    role: 'Você é um estrategista de conteúdo para pequenos negócios que precisam vender sem parecer forçados.',
+    output: 'Entregue 5 ideias de post com título, texto principal, legenda curta e CTA.',
+    example: {
+      nicho: 'Consultoria de imagem',
+      produto: 'Análise de coloração pessoal',
+      publico: 'Mulheres que querem se vestir melhor',
+      dor: 'Compram roupas, mas sentem que nada combina',
+      desejo: 'Ter mais segurança ao escolher roupas e maquiagem',
+      tom: 'Elegante, simples e consultivo',
+      canal: 'Instagram',
+      objetivo: 'Gerar comentários e directs',
+      observacoes: 'Usar exemplos do dia a dia.',
+    },
+  },
+  {
+    id: 'legenda',
+    label: 'Legenda com CTA',
+    description: 'Transforme uma ideia solta em legenda persuasiva.',
+    role: 'Você é um copywriter de redes sociais especializado em legendas claras e comerciais.',
+    output: 'Entregue 5 legendas: curta, média, emocional, direta e educativa. Cada uma deve terminar com um CTA.',
+    example: {
+      nicho: 'Loja de roupas femininas',
+      produto: 'Vestidos casuais',
+      publico: 'Mulheres de 25 a 40 anos',
+      dor: 'Não sabem montar look rápido para trabalhar e sair',
+      desejo: 'Parecer arrumada sem perder tempo',
+      tom: 'Leve, prático e feminino',
+      canal: 'Instagram',
+      objetivo: 'Levar para o direct',
+      observacoes: 'Sem exagerar em emojis.',
+    },
+  },
+  {
+    id: 'anuncio',
+    label: 'Anúncio curto',
+    description: 'Crie copies de anúncio para testar dor e desejo.',
+    role: 'Você é um estrategista de anúncios de resposta direta para produtos simples e serviços locais.',
+    output: 'Entregue 5 versões de anúncio com gancho, dor, promessa segura, prova lógica e CTA.',
+    example: {
+      nicho: 'Social media para negócios locais',
+      produto: 'Pacote de posts mensais',
+      publico: 'Donos de pequenos negócios',
+      dor: 'Não conseguem postar com constância',
+      desejo: 'Atrair clientes sem perder horas criando conteúdo',
+      tom: 'Direto e comercial',
+      canal: 'Facebook/Instagram Ads',
+      objetivo: 'Gerar orçamento',
+      observacoes: 'Não prometer viralização.',
+    },
+  },
+  {
+    id: 'whatsapp',
+    label: 'Mensagem de WhatsApp',
+    description: 'Crie mensagens naturais para atendimento e venda.',
+    role: 'Você é especialista em vendas consultivas por WhatsApp, com linguagem humana e sem pressão agressiva.',
+    output: 'Entregue mensagem inicial, explicação do produto, resposta para preço, follow-up e fechamento consultivo.',
+    example: {
+      nicho: 'Design de sobrancelhas',
+      produto: 'Design com henna',
+      publico: 'Mulheres que querem valorizar o rosto',
+      dor: 'Sobrancelha falhada ou sem desenho',
+      desejo: 'Ter aparência mais cuidada',
+      tom: 'Acolhedor e profissional',
+      canal: 'WhatsApp',
+      objetivo: 'Agendar horário',
+      observacoes: 'Mensagens com no máximo 4 linhas.',
+    },
+  },
+  {
+    id: 'objecoes',
+    label: 'Quebra de objeções',
+    description: 'Prepare respostas para preço, dúvida, tempo e confiança.',
+    role: 'Você é um estrategista de objeções de venda para pequenos negócios e produtos digitais de baixo ticket.',
+    output: 'Liste as 8 objeções mais prováveis e crie respostas curtas, humanas e sem pressão.',
+    example: {
+      nicho: 'Curso rápido de Canva',
+      produto: 'Mini treinamento para criar posts',
+      publico: 'Autônomos que cuidam do próprio Instagram',
+      dor: 'Posts feios e pouco profissionais',
+      desejo: 'Criar artes melhores sem contratar designer',
+      tom: 'Simples e encorajador',
+      canal: 'WhatsApp e página de venda',
+      objetivo: 'Reduzir dúvidas antes da compra',
+      observacoes: 'Evitar prometer design profissional em um dia.',
+    },
+  },
+  {
+    id: 'pagina',
+    label: 'Página de venda simples',
+    description: 'Monte a estrutura de uma página de venda curta.',
+    role: 'Você é copywriter de páginas de venda simples para produtos digitais de R$27 a R$97.',
+    output: 'Entregue headline, subheadline, bloco de dor, solução, o que recebe, para quem é, garantia, FAQ e CTA.',
+    example: {
+      nicho: 'IA para pequenos negócios',
+      produto: 'Kit de prompts guiados',
+      publico: 'Autônomos e criadores iniciantes',
+      dor: 'Recebem respostas genéricas da IA',
+      desejo: 'Criar posts e mensagens melhores em menos tempo',
+      tom: 'Direto, acessível e profissional',
+      canal: 'Página de venda',
+      objetivo: 'Vender por R$27',
+      observacoes: 'Focar em aplicação imediata.',
+    },
+  },
+  {
+    id: 'calendario',
+    label: 'Calendário de conteúdo',
+    description: 'Gere uma sequência de posts organizada por objetivo.',
+    role: 'Você é estrategista editorial para pequenos negócios que precisam vender com conteúdo simples.',
+    output: 'Crie um calendário de 7 dias com tema, objetivo, gancho, formato e CTA de cada dia.',
+    example: {
+      nicho: 'Confeitaria artesanal',
+      produto: 'Bolos caseiros por encomenda',
+      publico: 'Famílias e empresas locais',
+      dor: 'Querem encomendar, mas não sabem opções e prazos',
+      desejo: 'Comprar algo bonito e confiável para datas especiais',
+      tom: 'Próximo, apetitoso e confiável',
+      canal: 'Instagram',
+      objetivo: 'Receber pedidos no WhatsApp',
+      observacoes: 'Intercalar prova, bastidor e oferta.',
+    },
+  },
+  {
+    id: 'humanizar',
+    label: 'Humanizar texto de IA',
+    description: 'Remova clichês, tom robótico e frases vazias.',
+    role: 'Você é editor de texto humano, especialista em remover clichês de IA e deixar mensagens mais naturais.',
+    output: 'Reescreva o texto em 3 versões: mais direta, mais humana e mais comercial. Explique o que foi removido.',
+    example: {
+      nicho: 'Marketing digital',
+      produto: 'Consultoria de posicionamento',
+      publico: 'Prestadores de serviço',
+      dor: 'Comunicação genérica que não vende',
+      desejo: 'Falar com clareza e autoridade',
+      tom: 'Direto, humano e sem clichês',
+      canal: 'LinkedIn',
+      objetivo: 'Melhorar um texto já gerado por IA',
+      observacoes: 'Remover termos como potencialize, jornada e transformador.',
+    },
+  },
+  {
+    id: 'oferta',
+    label: 'Criar oferta simples',
+    description: 'Transforme um serviço ou ideia em uma oferta vendável.',
+    role: 'Você é estrategista de ofertas de baixo ticket e serviços simples para pequenos negócios.',
+    output: 'Entregue nome da oferta, promessa, público, dor, entrega, bônus, preço sugerido, garantia e CTA.',
+    example: {
+      nicho: 'Organização digital',
+      produto: 'Template de pastas para Google Drive',
+      publico: 'Profissionais autônomos desorganizados',
+      dor: 'Não acham arquivos e perdem tempo',
+      desejo: 'Ter um sistema simples para organizar tudo',
+      tom: 'Prático e objetivo',
+      canal: 'Página e Reels',
+      objetivo: 'Criar uma oferta R$27',
+      observacoes: 'Mostrar ganho de tempo, não prometer produtividade infinita.',
+    },
+  },
+];
+
+const libraryItems: LibraryItem[] = [
+  { category: 'Conteúdo', title: 'Gerador de ideias de Reels', when: 'Quando você precisa de ideias rápidas para vídeo curto.', target: 'reels' },
+  { category: 'Conteúdo', title: 'Gerador de roteiro curto', when: 'Quando já tem uma ideia, mas não sabe estruturar a fala.', target: 'reels' },
+  { category: 'Conteúdo', title: 'Gerador de legenda com CTA', when: 'Quando o post está pronto, mas falta texto para converter.', target: 'legenda' },
+  { category: 'Conteúdo', title: 'Gerador de carrossel', when: 'Quando quer educar o público em formato passo a passo.', target: 'post' },
+  { category: 'Conteúdo', title: 'Gerador de calendário de 7 dias', when: 'Quando precisa de constância sem pensar do zero.', target: 'calendario' },
+  { category: 'Venda', title: 'Gerador de oferta simples', when: 'Quando tem uma ideia, mas ainda não tem promessa vendável.', target: 'oferta' },
+  { category: 'Venda', title: 'Gerador de post de venda', when: 'Quando precisa vender sem parecer insistente.', target: 'post' },
+  { category: 'Venda', title: 'Gerador de anúncio curto', when: 'Quando quer testar criativos de tráfego pago ou orgânico.', target: 'anuncio' },
+  { category: 'Venda', title: 'Gerador de quebra de objeções', when: 'Quando clientes dizem caro, vou pensar ou não tenho tempo.', target: 'objecoes' },
+  { category: 'Venda', title: 'Gerador de CTA', when: 'Quando o conteúdo está bom, mas não chama para ação.', target: 'legenda' },
+  { category: 'WhatsApp', title: 'Resposta para interessado', when: 'Quando alguém chama no WhatsApp pedindo informação.', target: 'whatsapp' },
+  { category: 'WhatsApp', title: 'Mensagem para “vou pensar”', when: 'Quando a conversa esfriou depois do preço.', target: 'whatsapp' },
+  { category: 'WhatsApp', title: 'Mensagem para objeção de preço', when: 'Quando o cliente compara só valor e não percebe entrega.', target: 'whatsapp' },
+  { category: 'WhatsApp', title: 'Mensagem de follow-up', when: 'Quando precisa retomar contato sem incomodar.', target: 'whatsapp' },
+  { category: 'WhatsApp', title: 'Mensagem de fechamento consultivo', when: 'Quando o cliente está interessado, mas ainda não decidiu.', target: 'whatsapp' },
+  { category: 'Bônus', title: 'Humanizador de texto de IA', when: 'Quando a resposta ficou bonita, mas robótica.', target: 'humanizar' },
+  { category: 'Bônus', title: 'Removedor de clichês de IA', when: 'Quando aparecem termos como potencialize, jornada e revolucionário.', target: 'humanizar' },
+  { category: 'Bônus', title: 'Transformador de prompt fraco em prompt profissional', when: 'Quando você sabe o que quer, mas pediu de forma genérica.', target: 'oferta' },
+];
 
 function App() {
   const [page, setPage] = useState<Page>('home');
-  const [form, setForm] = useState<FormData>(initialForm);
-  const [submittedData, setSubmittedData] = useState<FormData | null>(null);
-  const [copiedBlock, setCopiedBlock] = useState<string | null>(null);
-  const [pendingPaidPage, setPendingPaidPage] = useState<PaidPage | null>(null);
+  const [category, setCategory] = useState<PromptCategory>('reels');
+  const [form, setForm] = useState<PromptForm>(initialForm);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [copyStatus, setCopyStatus] = useState('');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [accessMessage, setAccessMessage] = useState('');
 
-  const resultBlocks = useMemo(
-    () => (submittedData ? generateSample(submittedData) : []),
-    [submittedData],
-  );
-  const starterKitBlocks = useMemo(
-    () => (submittedData ? generateStarterKit(submittedData) : []),
-    [submittedData],
-  );
-  const salesClarityBlocks = useMemo(
-    () => (submittedData ? generateSalesClarityKit(submittedData) : []),
-    [submittedData],
-  );
-  const content30Blocks = useMemo(
-    () => (submittedData ? generateContent30Kit(submittedData) : []),
-    [submittedData],
-  );
+  const selectedTemplate = useMemo(() => templates.find((item) => item.id === category) ?? templates[0], [category]);
 
-  const goTo = (nextPage: Page) => {
-    setCopiedBlock(null);
-    setPage(nextPage);
+  function navigate(next: Page) {
+    setPage(next);
+    setCopyStatus('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  function updateField(field: keyof PromptForm, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function loadExample() {
+    setForm(selectedTemplate.example);
+    setGeneratedPrompt('');
+  }
+
+  function generatePrompt(event?: FormEvent) {
+    event?.preventDefault();
+    setGeneratedPrompt(buildPrompt(selectedTemplate, form));
+  }
+
+  async function copyText(text: string) {
+    if (!text.trim()) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus('Prompt copiado.');
+    } catch {
+      setCopyStatus('Selecione e copie manualmente.');
+    }
+    window.setTimeout(() => setCopyStatus(''), 2200);
+  }
+
+  function activateAccess(event: FormEvent) {
     event.preventDefault();
-    setSubmittedData(form);
+    const normalized = code.trim().toUpperCase();
+    const plan = accessCodes[normalized];
 
-    if (pendingPaidPage) {
-      const nextPage = pendingPaidPage;
-      setPendingPaidPage(null);
-      goTo(nextPage);
+    if (!email.includes('@')) {
+      setAccessMessage('Informe o e-mail usado na compra.');
       return;
     }
 
-    goTo('result');
-  };
-
-  const copyBlock = async (block: ResultBlock) => {
-    const text = `${block.title}\n\n${block.content}`;
-    await navigator.clipboard.writeText(text);
-    setCopiedBlock(block.title);
-    window.setTimeout(() => setCopiedBlock(null), 1800);
-  };
-
-  const unlockPaidPage = (paidPage: PaidPage) => {
-    if (submittedData) {
-      goTo(paidPage);
+    if (!plan) {
+      setAccessMessage('Código inválido. Confira se digitou corretamente.');
       return;
     }
 
-    setPendingPaidPage(paidPage);
-    goTo('sample');
-  };
+    localStorage.setItem(
+      'comando-pronto-ia-access',
+      JSON.stringify({ email, code: normalized, plan, activatedAt: new Date().toISOString() }),
+    );
+    setAccessMessage(`Acesso ativado com sucesso: ${plan}.`);
+    window.setTimeout(() => navigate('gerador'), 900);
+  }
+
+  function useFromLibrary(target: PromptCategory = 'reels') {
+    setCategory(target);
+    navigate('gerador');
+  }
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <button className="brand" onClick={() => goTo('home')} aria-label="Ir para a página inicial">
-          <span className="brand-icon">✦</span>
-          <span>Gerador de Vendas IA</span>
-        </button>
-
-        <nav className="nav-links" aria-label="Navegação principal">
-          <button onClick={() => goTo('home')}>Início</button>
-          <button onClick={() => goTo('sample')}>Amostra grátis</button>
-          <button onClick={() => goTo('plans')}>Planos</button>
-          <button onClick={() => goTo('access')}>Acessar plano pago</button>
-        </nav>
-      </header>
-
+      <Header page={page} navigate={navigate} />
       <main>
-        {page === 'home' && <HomePage onStart={() => goTo('sample')} onPlans={() => goTo('plans')} />}
-        {page === 'sample' && (
-          <SampleForm form={form} setForm={setForm} onSubmit={handleSubmit} pendingPaidPage={pendingPaidPage} />
-        )}
-        {page === 'result' && submittedData && (
-          <ResultPage
-            data={submittedData}
-            blocks={resultBlocks}
-            copiedBlock={copiedBlock}
-            onCopy={copyBlock}
-            onPlans={() => goTo('plans')}
-            onNewSample={() => goTo('sample')}
+        {page === 'home' && <HomePage navigate={navigate} />}
+        {page === 'gerador' && (
+          <GeneratorPage
+            category={category}
+            setCategory={setCategory}
+            form={form}
+            updateField={updateField}
+            selectedTemplate={selectedTemplate}
+            generatedPrompt={generatedPrompt}
+            generatePrompt={generatePrompt}
+            copyText={copyText}
+            copyStatus={copyStatus}
+            loadExample={loadExample}
+            clear={() => {
+              setForm(initialForm);
+              setGeneratedPrompt('');
+            }}
           />
         )}
-        {page === 'result' && !submittedData && <EmptyResult onStart={() => goTo('sample')} />}
-        {page === 'access' && <AccessPage onActivate={unlockPaidPage} />}
-        {page === 'starterKit' && submittedData && (
-          <PaidDeliveryPage
-            eyebrow="Plano liberado • R$27"
-            title={`${submittedData.nome}, seu kit Começar Agora está pronto.`}
-            description="Entrega simulada do plano de entrada: diagnóstico objetivo, headlines, CTAs, mensagens curtas, ideias de post e um roteiro curto de Reels."
-            blocks={starterKitBlocks}
-            copiedBlock={copiedBlock}
-            onCopy={copyBlock}
-            onPlans={() => goTo('plans')}
-            onNewSample={() => goTo('sample')}
+        {page === 'biblioteca' && <LibraryPage useFromLibrary={useFromLibrary} />}
+        {page === 'guia' && <GuidePage />}
+        {page === 'planos' && <PricingPage navigate={navigate} />}
+        {page === 'ativar' && (
+          <ActivatePage
+            email={email}
+            code={code}
+            setEmail={setEmail}
+            setCode={setCode}
+            message={accessMessage}
+            onSubmit={activateAccess}
           />
         )}
-        {page === 'starterKit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
-        {page === 'salesClarityKit' && submittedData && (
-          <PaidDeliveryPage
-            eyebrow="Plano liberado • R$47"
-            title={`${submittedData.nome}, seu kit Vender com Clareza está pronto.`}
-            description="Entrega simulada do kit completo: diagnóstico comercial, ângulos de venda, roteiros de Reels, mensagens de WhatsApp, headlines, CTAs e respostas para objeções."
-            blocks={salesClarityBlocks}
-            copiedBlock={copiedBlock}
-            onCopy={copyBlock}
-            onPlans={() => goTo('plans')}
-            onNewSample={() => goTo('sample')}
-          />
-        )}
-        {page === 'salesClarityKit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
-        {page === 'content30Kit' && submittedData && (
-          <PaidDeliveryPage
-            eyebrow="Plano liberado • R$97"
-            title={`${submittedData.nome}, seus 30 dias de conteúdo estão prontos.`}
-            description="Entrega simulada do plano mensal: calendário de 30 dias, ideias de posts, roteiros de Reels, mensagens de WhatsApp, CTAs por etapa e sequência de divulgação."
-            blocks={content30Blocks}
-            copiedBlock={copiedBlock}
-            onCopy={copyBlock}
-            onPlans={() => goTo('plans')}
-            onNewSample={() => goTo('sample')}
-          />
-        )}
-        {page === 'content30Kit' && !submittedData && <EmptyPaidDelivery onStart={() => goTo('sample')} />}
-        {page === 'plans' && <PlansPage onAccess={() => goTo('access')} />}
+        {page === 'obrigado' && <ThankYouPage navigate={navigate} />}
       </main>
+      <Footer />
     </div>
   );
 }
 
-function HomePage({ onStart, onPlans }: { onStart: () => void; onPlans: () => void }) {
+function Header({ page, navigate }: { page: Page; navigate: (page: Page) => void }) {
+  const items: { page: Page; label: string }[] = [
+    { page: 'home', label: 'Início' },
+    { page: 'gerador', label: 'Gerador' },
+    { page: 'biblioteca', label: 'Biblioteca' },
+    { page: 'guia', label: 'Guia' },
+    { page: 'planos', label: 'Planos' },
+  ];
+
+  return (
+    <header className="site-header">
+      <button className="brand" onClick={() => navigate('home')} aria-label="Ir para início">
+        <span className="brand-icon">⌘</span>
+        <span>Comando Pronto IA</span>
+      </button>
+      <nav className="nav-links" aria-label="Navegação principal">
+        {items.map((item) => (
+          <button className={page === item.page ? 'active' : ''} key={item.page} onClick={() => navigate(item.page)}>
+            {item.label}
+          </button>
+        ))}
+        <button className="nav-cta" onClick={() => navigate('ativar')}>
+          Ativar acesso
+        </button>
+      </nav>
+    </header>
+  );
+}
+
+function HomePage({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <>
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow">Conteúdo pronto para vender • sem copy • sem roteiro</span>
-          <h1>Pare de travar na hora de criar conteúdo para vender.</h1>
+          <span className="eyebrow">Prompts guiados • conteúdo • venda • WhatsApp</span>
+          <h1>Você não precisa aprender IA. Só precisa copiar o comando certo.</h1>
           <p>
-            Informe o que você vende e receba textos prontos para transformar sua oferta em posts,
-            roteiros de Reels, mensagens de WhatsApp, headlines e CTAs.
+            Preencha campos simples e gere prompts profissionais para criar posts, roteiros, anúncios e mensagens de
+            venda no ChatGPT, Gemini ou Claude.
           </p>
           <div className="hero-actions">
-            <button className="primary-button" onClick={onStart}>
-              Gerar minha amostra grátis
+            <button className="primary-button" onClick={() => navigate('gerador')}>
+              Começar agora
             </button>
-            <button className="secondary-button" onClick={onPlans}>
-              Ver planos
+            <button className="secondary-button" onClick={() => navigate('biblioteca')}>
+              Ver exemplos
             </button>
           </div>
         </div>
 
-        <div className="hero-card" aria-label="Prévia da ferramenta">
-          <div className="terminal-bar">
-            <span />
-            <span />
-            <span />
+        <div className="hero-card">
+          <span className="ai-label">Antes</span>
+          <div className="bad-prompt">“Faça um post sobre meu produto.”</div>
+          <span className="ai-label good">Depois</span>
+          <div className="good-prompt">
+            Crie um post para [público], que sofre com [dor], deseja [resultado], usando tom [tom], com gancho forte,
+            exemplo real e CTA para [ação].
           </div>
-          <p className="ai-label">Sua oferta vira conteúdo</p>
-          <h2>Sem página em branco</h2>
-          <ul>
-            <li>Diagnóstico da oferta</li>
-            <li>Ângulos de venda</li>
-            <li>Roteiros e mensagens prontas</li>
-            <li>Headlines, CTAs e objeções</li>
-          </ul>
-          <div className="pulse-card">Você informa a oferta. A IA monta a primeira versão.</div>
         </div>
       </section>
 
-      <section className="conversion-section">
+      <section className="pain-section">
         <div className="section-heading">
-          <span className="eyebrow">O problema</span>
-          <h2>Você sabe que precisa postar. Mas trava na hora de escrever.</h2>
+          <span className="eyebrow">A dor real</span>
+          <h2>O problema não é a ferramenta. É o comando.</h2>
           <p>
-            A dificuldade não é apenas falta de ideias. É não saber transformar o que você vende em
-            uma mensagem clara, persuasiva e pronta para publicar.
+            Você abre a IA, pede um post e recebe um texto bonito, mas vazio. Isso acontece porque faltam contexto,
+            público, dor, canal, tom e formato de saída.
           </p>
         </div>
-        <div className="feature-grid">
-          {[
-            ['“O que eu posto hoje?”', 'Você abre o celular, tenta escrever, apaga, reescreve e acaba adiando a publicação.'],
-            ['“Como explico minha oferta?”', 'O produto existe, mas a mensagem fica confusa e o cliente não entende o valor.'],
-            ['“Como vendo sem parecer forçado?”', 'Sem estrutura, o conteúdo vira improviso e a oferta continua invisível.'],
-          ].map(([title, text]) => (
-            <article className="feature-card" key={title}>
-              <span className="feature-icon">!</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
-          ))}
-        </div>
       </section>
 
-      <section className="conversion-section">
-        <div className="section-heading">
-          <span className="eyebrow">A solução</span>
-          <h2>O Gerador de Vendas IA transforma sua oferta em conteúdo pronto.</h2>
-          <p>
-            Você preenche o que vende, para quem vende, qual dor resolve e qual benefício entrega.
-            A ferramenta organiza essas informações em textos comerciais para copiar, adaptar e publicar.
-          </p>
-        </div>
-        <div className="feature-grid">
-          {[
-            ['Diagnóstico da oferta', 'Entenda o que precisa ficar mais claro para vender com menos improviso.'],
-            ['Roteiros e mensagens', 'Receba estruturas para Reels, WhatsApp, direct e divulgação diária.'],
-            ['Chamadas de venda', 'Use headlines, CTAs, ângulos e respostas para objeções sem começar do zero.'],
-          ].map(([title, text]) => (
-            <article className="feature-card" key={title}>
-              <span className="feature-icon">✓</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
+      <section className="steps-grid">
+        {['Escolha o que quer criar', 'Preencha os dados do seu negócio', 'Gere o comando pronto', 'Cole na sua IA favorita'].map(
+          (step, index) => (
+            <article className="step-card" key={step}>
+              <span>{index + 1}</span>
+              <h3>{step}</h3>
+              <p>
+                Um fluxo simples para sair da tela em branco e obter respostas menos genéricas, sem depender de
+                programação.
+              </p>
             </article>
-          ))}
-        </div>
+          ),
+        )}
       </section>
 
-      <section className="conversion-section" aria-labelledby="como-funciona">
-        <div className="section-heading">
-          <span className="eyebrow">Como funciona</span>
-          <h2 id="como-funciona">Da sua oferta ao conteúdo pronto em 3 passos</h2>
-          <p>Não precisa criar prompt, montar roteiro do zero ou saber fórmulas de copy.</p>
-        </div>
-        <div className="steps-grid">
-          {[
-            ['1', 'Informe os dados da sua oferta', 'Preencha produto, público, dor, benefício e canal principal.'],
-            ['2', 'Receba uma amostra personalizada', 'Veja diagnóstico, roteiro, WhatsApp, headline e CTA gerados a partir das suas respostas.'],
-            ['3', 'Copie, publique e venda com mais clareza', 'Use o conteúdo como ponto de partida para divulgar sua oferta sem travar.'],
-          ].map(([number, title, text]) => (
-            <article className="step-card" key={number}>
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="conversion-section">
-        <div className="section-heading">
-          <span className="eyebrow">Antes e depois</span>
-          <h2>Saia do conteúdo travado para uma comunicação com direção.</h2>
-        </div>
-        <div className="feature-grid">
-          <article className="feature-card">
-            <span className="feature-icon">×</span>
-            <h3>Antes</h3>
-            <p>Você tenta escrever algo, sente insegurança, não sabe como explicar a oferta e deixa para depois.</p>
+      <section className="benefits-grid">
+        {[
+          'Sair da tela em branco',
+          'Evitar textos com cara de robô',
+          'Criar conteúdo mais rápido',
+          'Vender melhor pelo WhatsApp',
+          'Criar anúncios com estrutura',
+          'Transformar ideias soltas em prompts úteis',
+        ].map((benefit) => (
+          <article className="feature-card" key={benefit}>
+            <h3>{benefit}</h3>
+            <p>Use estruturas preenchíveis em vez de comandos vagos que geram respostas repetidas.</p>
           </article>
-          <article className="feature-card">
-            <span className="feature-icon">✓</span>
-            <h3>Depois</h3>
-            <p>Você informa sua oferta, recebe textos prontos e começa a divulgar com mais clareza.</p>
-          </article>
-          <article className="feature-card">
-            <span className="feature-icon">→</span>
-            <h3>Resultado prático</h3>
-            <p>Menos tempo parado na página em branco e mais peças comerciais prontas para testar.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="conversion-section audience-section" aria-labelledby="para-quem-e">
-        <div className="section-heading">
-          <span className="eyebrow">Para quem é</span>
-          <h2 id="para-quem-e">Feito para quem vende online e precisa postar sem travar</h2>
-          <p>Use para transformar uma ideia de oferta em conteúdo comercial direto e fácil de publicar.</p>
-        </div>
-        <div className="audience-list">
-          {[
-            'Afiliados',
-            'Infoprodutores',
-            'Prestadores de serviço',
-            'Pequenos negócios',
-            'Vendedores pelo WhatsApp',
-            'Quem usa IA, mas não sabe pedir do jeito certo',
-          ].map((audience) => (
-            <span key={audience}>{audience}</span>
-          ))}
-        </div>
+        ))}
       </section>
 
       <section className="conversion-section">
-        <div className="section-heading">
-          <span className="eyebrow">Planos</span>
-          <h2>Escolha o nível de conteúdo que sua oferta precisa agora.</h2>
-          <p>Comece com uma amostra grátis ou avance para um dos pacotes pagos.</p>
-        </div>
-        <div className="plans-grid">
-          {[
-            ['Começar Agora', 'R$27', 'Diagnóstico objetivo, headlines, CTAs, mensagens curtas, ideias de post e roteiro curto de Reels.'],
-            ['Vender com Clareza', 'R$47', 'Diagnóstico completo, ângulos, 5 roteiros, 5 mensagens, 5 headlines, 5 CTAs e objeções.'],
-            ['30 Dias de Conteúdo', 'R$97', 'Calendário de 30 dias, ideias de posts, roteiros, WhatsApp, CTAs por etapa e sequência de divulgação.'],
-          ].map(([name, price, text]) => (
-            <article className="plan-card" key={name}>
-              <h3>{name}</h3>
-              <strong>{price}</strong>
-              <p>{text}</p>
-              <button className="primary-button plan-button" onClick={onPlans}>
-                Ver este plano
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="conversion-section">
-        <div className="section-heading">
-          <span className="eyebrow">Objeções comuns</span>
-          <h2>Não precisa saber copy, roteiro ou prompt para começar.</h2>
-        </div>
-        <div className="feature-grid">
-          {[
-            ['“Eu não sei usar IA.”', 'Você não precisa escrever prompt. Basta preencher os campos principais da sua oferta.'],
-            ['“Minha oferta é simples.”', 'Melhor ainda. Quanto mais simples a oferta, mais rápido a ferramenta ajuda a organizar a mensagem.'],
-            ['“Isso substitui uma copy profissional?”', 'Não. Ele entrega uma primeira estrutura comercial para você sair da página em branco e divulgar com clareza.'],
-          ].map(([title, text]) => (
-            <article className="feature-card" key={title}>
-              <span className="feature-icon">?</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="upgrade-banner">
-        <div>
-          <span className="eyebrow">Comece grátis</span>
-          <h2>Sua oferta não precisa continuar parada porque você não sabe o que postar.</h2>
-          <p>Gere uma amostra grátis e veja como sua comunicação pode ficar mais clara em poucos minutos.</p>
-        </div>
-        <div className="banner-actions">
-          <button className="primary-button" onClick={onStart}>
-            Gerar amostra grátis
-          </button>
-          <button className="secondary-button" onClick={onPlans}>
-            Ver planos pagos
-          </button>
-        </div>
+        <span className="eyebrow">O que você recebe</span>
+        <h2>15 Prompts-Mestre + bônus anti-texto-robótico.</h2>
+        <ul className="check-list">
+          <li>Prompts para posts, Reels, legendas e calendário.</li>
+          <li>Prompts para oferta, anúncio, página de venda e objeções.</li>
+          <li>Prompts para WhatsApp, follow-up e fechamento consultivo.</li>
+          <li>Exemplos preenchidos e botão de copiar no gerador.</li>
+        </ul>
+        <button className="primary-button" onClick={() => navigate('planos')}>
+          Ver planos
+        </button>
       </section>
     </>
   );
 }
 
-function SampleForm({
+function GeneratorPage({
+  category,
+  setCategory,
   form,
-  setForm,
-  onSubmit,
-  pendingPaidPage,
+  updateField,
+  selectedTemplate,
+  generatedPrompt,
+  generatePrompt,
+  copyText,
+  copyStatus,
+  loadExample,
+  clear,
 }: {
-  form: FormData;
-  setForm: (form: FormData) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  pendingPaidPage: PaidPage | null;
+  category: PromptCategory;
+  setCategory: (category: PromptCategory) => void;
+  form: PromptForm;
+  updateField: (field: keyof PromptForm, value: string) => void;
+  selectedTemplate: PromptTemplate;
+  generatedPrompt: string;
+  generatePrompt: (event?: FormEvent) => void;
+  copyText: (text: string) => void;
+  copyStatus: string;
+  loadExample: () => void;
+  clear: () => void;
 }) {
-  const updateField = (field: keyof FormData, value: string) => {
-    setForm({ ...form, [field]: value });
-  };
-
-  return (
-    <section className="form-section">
-      <div className="section-heading">
-        <span className="eyebrow">{pendingPaidPage ? 'Dados da entrega paga' : 'Amostra grátis'}</span>
-        <h1>Conte sobre sua oferta</h1>
-        <p>
-          {pendingPaidPage
-            ? 'Código validado. Preencha os dados da sua oferta para gerar a entrega do plano comprado.'
-            : 'Use respostas objetivas. A simulação vai adaptar a linguagem aos dados informados.'}
-        </p>
-      </div>
-
-      <form className="sample-form" onSubmit={onSubmit}>
-        <Field label="Nome" value={form.nome} onChange={(value) => updateField('nome', value)} />
-        <Field
-          label="E-mail"
-          type="email"
-          value={form.email}
-          onChange={(value) => updateField('email', value)}
-        />
-        <Field label="Produto" value={form.produto} onChange={(value) => updateField('produto', value)} />
-        <Field label="Público" value={form.publico} onChange={(value) => updateField('publico', value)} />
-        <Field
-          label="Dor principal"
-          value={form.dor}
-          onChange={(value) => updateField('dor', value)}
-        />
-        <Field
-          label="Benefício principal"
-          value={form.beneficio}
-          onChange={(value) => updateField('beneficio', value)}
-        />
-
-        <label>
-          Tom de comunicação
-          <select value={form.tom} onChange={(event) => updateField('tom', event.target.value)}>
-            <option>Direto e persuasivo</option>
-            <option>Consultivo e educativo</option>
-            <option>Emocional e aspiracional</option>
-            <option>Leve e descontraído</option>
-          </select>
-        </label>
-
-        <label>
-          Canal principal
-          <select value={form.canal} onChange={(event) => updateField('canal', event.target.value)}>
-            <option>Instagram</option>
-            <option>Reels</option>
-            <option>WhatsApp</option>
-            <option>Anúncios pagos</option>
-            <option>Página de venda</option>
-          </select>
-        </label>
-
-        <div className="form-footer">
-          <p>{pendingPaidPage ? 'Após enviar, o kit pago será gerado na tela.' : 'Ao enviar, você verá uma amostra simulada. Nenhum dado será salvo.'}</p>
-          <button className="primary-button" type="submit">
-            {pendingPaidPage ? 'Gerar entrega do plano' : 'Gerar resultado grátis'}
-          </button>
-        </div>
-      </form>
-    </section>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = 'text',
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-}) {
-  return (
-    <label>
-      {label}
-      <input
-        type={type}
-        required
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={`Digite ${label.toLowerCase()}`}
-      />
-    </label>
-  );
-}
-
-function ResultPage({
-  data,
-  blocks,
-  copiedBlock,
-  onCopy,
-  onPlans,
-  onNewSample,
-}: {
-  data: FormData;
-  blocks: ResultBlock[];
-  copiedBlock: string | null;
-  onCopy: (block: ResultBlock) => void;
-  onPlans: () => void;
-  onNewSample: () => void;
-}) {
-  return (
-    <section className="result-section">
-      <div className="section-heading">
-        <span className="eyebrow">Resultado da amostra</span>
-        <h1>{data.nome}, sua prévia comercial está pronta.</h1>
-        <p>
-          Este é um resultado simulado para validar a ferramenta. O pacote completo aprofunda
-          variações, calendário e textos por canal.
-        </p>
-      </div>
-
-      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
-
-      <div className="upgrade-banner">
-        <div>
-          <span className="eyebrow">Próximo passo</span>
-          <h2>Quer transformar essa amostra em um kit completo de vendas?</h2>
-          <p>Escolha um plano com mais peças, variações e conteúdo pronto para publicar.</p>
-        </div>
-        <div className="banner-actions">
-          <button className="secondary-button" onClick={onNewSample}>
-            Editar dados
-          </button>
-          <button className="primary-button" onClick={onPlans}>
-            Ver planos
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PaidDeliveryPage({
-  eyebrow,
-  title,
-  description,
-  blocks,
-  copiedBlock,
-  onCopy,
-  onPlans,
-  onNewSample,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  blocks: ResultBlock[];
-  copiedBlock: string | null;
-  onCopy: (block: ResultBlock) => void;
-  onPlans: () => void;
-  onNewSample: () => void;
-}) {
-  return (
-    <section className="result-section">
-      <div className="section-heading">
-        <span className="eyebrow">{eyebrow}</span>
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-
-      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
-
-      <div className="upgrade-banner">
-        <div>
-          <span className="eyebrow">Entrega liberada</span>
-          <h2>Copie os blocos e use na sua divulgação.</h2>
-          <p>Esta versão é simulada para MVP. A etapa profissional pode integrar pagamento, login e histórico.</p>
-        </div>
-        <div className="banner-actions">
-          <button className="secondary-button" onClick={onNewSample}>
-            Gerar com outros dados
-          </button>
-          <button className="primary-button" onClick={onPlans}>
-            Ver outros planos
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function AccessPage({ onActivate }: { onActivate: (paidPage: PaidPage) => void }) {
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
-
-  const handleAccess = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const normalizedCode = code.trim().toUpperCase();
-    const paidPage = accessCodes[normalizedCode];
-
-    if (!paidPage) {
-      setError('Código inválido. Confira o código recebido após a compra.');
-      return;
-    }
-
-    setError('');
-    onActivate(paidPage);
-  };
-
-  return (
-    <section className="form-section">
-      <div className="section-heading">
-        <span className="eyebrow">Acesso pago</span>
-        <h1>Acesse a entrega do plano comprado</h1>
-        <p>Digite o e-mail da compra e o código de acesso recebido após o pagamento.</p>
-      </div>
-
-      <form className="sample-form" onSubmit={handleAccess}>
-        <Field label="E-mail da compra" type="email" value={email} onChange={setEmail} />
-        <Field label="Código de acesso" value={code} onChange={setCode} />
-        <div className="form-footer">
-          <p>
-            Códigos configurados para o MVP: COMECE27, CLAREZA47 e CONTEUDO97. Depois, isso pode ser validado automaticamente pela Kiwify.
-          </p>
-          <button className="primary-button" type="submit">
-            Acessar plano pago
-          </button>
-        </div>
-        {error && <p>{error}</p>}
-      </form>
-    </section>
-  );
-}
-
-function BlockGrid({
-  blocks,
-  copiedBlock,
-  onCopy,
-}: {
-  blocks: ResultBlock[];
-  copiedBlock: string | null;
-  onCopy: (block: ResultBlock) => void;
-}) {
-  return (
-    <div className="result-grid">
-      {blocks.map((block) => (
-        <article className="result-card" key={block.title}>
-          <div className="result-card-header">
-            <h2>{block.title}</h2>
-            <button className="copy-button" onClick={() => onCopy(block)}>
-              {copiedBlock === block.title ? 'Copiado!' : 'Copiar'}
-            </button>
-          </div>
-          <p style={{ whiteSpace: 'pre-line' }}>{block.content}</p>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function EmptyResult({ onStart }: { onStart: () => void }) {
-  return (
-    <section className="empty-state">
-      <h1>Você ainda não gerou uma amostra.</h1>
-      <p>Preencha o formulário para receber seu conteúdo de venda simulado.</p>
-      <button className="primary-button" onClick={onStart}>
-        Começar agora
-      </button>
-    </section>
-  );
-}
-
-function EmptyPaidDelivery({ onStart }: { onStart: () => void }) {
-  return (
-    <section className="empty-state">
-      <h1>Preencha sua oferta antes de gerar a entrega paga.</h1>
-      <p>A entrega usa os dados da sua oferta para montar os textos do plano comprado.</p>
-      <button className="primary-button" onClick={onStart}>
-        Preencher minha oferta
-      </button>
-    </section>
-  );
-}
-
-function PlansPage({ onAccess }: { onAccess: () => void }) {
-  const plans = [
-    {
-      name: 'Começar Agora',
-      price: 'R$27',
-      description: 'Gere as primeiras peças para tirar sua oferta da página em branco.',
-      features: [
-        'Diagnóstico objetivo da oferta',
-        'Headline e CTA prontos para usar',
-        'Mensagem curta para WhatsApp ou direct',
-        'Indicado para validar uma promessa específica',
-      ],
-      link: planLinks.express,
-    },
-    {
-      name: 'Vender com Clareza',
-      price: 'R$47',
-      description: 'Transforme sua oferta em posts, roteiros, mensagens e copies prontas para vender.',
-      features: [
-        'Diagnóstico comercial mais completo',
-        'Roteiros de Reels com gancho, problema, solução e CTA',
-        'Mensagens de WhatsApp prontas para abordagem e follow-up',
-        'Headlines, CTAs, ângulos e respostas para objeções',
-      ],
-      link: planLinks.complete,
-      featured: true,
-    },
-    {
-      name: '30 Dias de Conteúdo',
-      price: 'R$97',
-      description: 'Receba uma estrutura mensal para manter constância e vender com mais frequência.',
-      features: [
-        'Calendário mensal de publicações',
-        'Ideias por etapa do funil de venda',
-        'Chamadas diárias para ação',
-        'Sugestões para alternar posts, Reels e WhatsApp',
-      ],
-      link: planLinks.days,
-    },
+  const fields: { key: keyof PromptForm; label: string; placeholder: string; textarea?: boolean }[] = [
+    { key: 'nicho', label: 'Nicho', placeholder: 'Ex.: estética, confeitaria, social media' },
+    { key: 'produto', label: 'Produto ou serviço', placeholder: 'Ex.: limpeza de pele, consultoria, template' },
+    { key: 'publico', label: 'Público-alvo', placeholder: 'Ex.: mulheres de 25 a 45 anos' },
+    { key: 'dor', label: 'Principal dor', placeholder: 'Ex.: não sabe postar com constância' },
+    { key: 'desejo', label: 'Principal desejo', placeholder: 'Ex.: atrair clientes pelo Instagram' },
+    { key: 'tom', label: 'Tom de voz', placeholder: 'Ex.: direto, popular, elegante, consultivo' },
+    { key: 'canal', label: 'Canal', placeholder: 'Ex.: Instagram, TikTok, WhatsApp, página de venda' },
+    { key: 'objetivo', label: 'Objetivo', placeholder: 'Ex.: gerar leads, vender, educar, agendar' },
+    { key: 'observacoes', label: 'Observações adicionais', placeholder: 'Ex.: não usar emojis; focar em dor financeira', textarea: true },
   ];
 
   return (
-    <section className="plans-section">
+    <section className="page-section">
       <div className="section-heading">
-        <span className="eyebrow">Planos</span>
-        <h1>Escolha o pacote certo para receber conteúdo pronto de venda</h1>
-        <p>Compre seu plano e use o código recebido para liberar a entrega correspondente.</p>
-        <button className="secondary-button" onClick={onAccess}>
-          Acessar plano pago
-        </button>
+        <span className="eyebrow">Gerador Interativo</span>
+        <h1>Gere um comando profissional em poucos campos.</h1>
+        <p>Escolha uma categoria, preencha os dados do negócio e copie o prompt final para usar na IA de sua preferência.</p>
       </div>
 
-      <div className="plans-grid">
-        {plans.map((plan) => (
-          <article className={`plan-card ${plan.featured ? 'featured-plan' : ''}`} key={plan.name}>
-            {plan.featured && <span className="badge">Recomendado</span>}
-            <h2>{plan.name}</h2>
-            <p>{plan.description}</p>
-            <strong>{plan.price}</strong>
-            <ul>
-              {plan.features.map((feature) => (
-                <li key={feature}>{feature}</li>
+      <div className="generator-layout">
+        <form className="prompt-form" onSubmit={generatePrompt}>
+          <label>
+            Categoria
+            <select value={category} onChange={(event) => setCategory(event.target.value as PromptCategory)}>
+              {templates.map((template) => (
+                <option value={template.id} key={template.id}>
+                  {template.label}
+                </option>
               ))}
-            </ul>
-            <a className="primary-button plan-button" href={plan.link} target="_blank" rel="noreferrer">
-              Comprar agora
-            </a>
-            <button className="secondary-button plan-button" onClick={onAccess}>
-              Já comprei / acessar
+            </select>
+          </label>
+
+          <p className="template-description">{selectedTemplate.description}</p>
+
+          <div className="form-grid">
+            {fields.map((field) => (
+              <label key={field.key}>
+                {field.label}
+                {field.textarea ? (
+                  <textarea
+                    value={form[field.key]}
+                    onChange={(event) => updateField(field.key, event.target.value)}
+                    placeholder={field.placeholder}
+                  />
+                ) : (
+                  <input
+                    value={form[field.key]}
+                    onChange={(event) => updateField(field.key, event.target.value)}
+                    placeholder={field.placeholder}
+                  />
+                )}
+              </label>
+            ))}
+          </div>
+
+          <div className="form-footer">
+            <button className="primary-button" type="submit">
+              Gerar comando
+            </button>
+            <button className="secondary-button" type="button" onClick={loadExample}>
+              Usar exemplo
+            </button>
+            <button className="secondary-button" type="button" onClick={clear}>
+              Limpar campos
+            </button>
+          </div>
+        </form>
+
+        <aside className="result-card">
+          <span className="eyebrow">Resultado</span>
+          <h2>Seu prompt pronto</h2>
+          {generatedPrompt ? (
+            <>
+              <pre>{generatedPrompt}</pre>
+              <button className="copy-button" onClick={() => copyText(generatedPrompt)}>
+                Copiar prompt
+              </button>
+              {copyStatus && <p className="copy-status">{copyStatus}</p>}
+            </>
+          ) : (
+            <p>Preencha os campos e clique em “Gerar comando”. O resultado aparecerá aqui.</p>
+          )}
+          <div className="usage-box">
+            <h3>Como usar</h3>
+            <p>Cole o comando no ChatGPT, Gemini ou Claude. Depois peça: “deixe mais humano”, “crie 3 variações” ou “remova clichês”.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function LibraryPage({ useFromLibrary }: { useFromLibrary: (target?: PromptCategory) => void }) {
+  return (
+    <section className="page-section">
+      <div className="section-heading">
+        <span className="eyebrow">Biblioteca</span>
+        <h1>15 Prompts-Mestre + 3 bônus.</h1>
+        <p>Use a biblioteca como mapa rápido do que o sistema consegue gerar.</p>
+      </div>
+      <div className="library-grid">
+        {libraryItems.map((item) => (
+          <article className="library-card" key={`${item.category}-${item.title}`}>
+            <span className="badge">{item.category}</span>
+            <h3>{item.title}</h3>
+            <p>{item.when}</p>
+            <button className="secondary-button" onClick={() => useFromLibrary(item.target)}>
+              Usar no gerador
             </button>
           </article>
         ))}
@@ -776,204 +646,205 @@ function PlansPage({ onAccess }: { onAccess: () => void }) {
   );
 }
 
-function generateStarterKit(data: FormData): ResultBlock[] {
-  const produto = data.produto.trim();
-  const publico = data.publico.trim();
-  const dor = data.dor.trim();
-  const beneficio = data.beneficio.trim();
-
-  return [
-    {
-      title: '1. Diagnóstico objetivo da oferta',
-      content: `${produto} tem potencial porque resolve uma dificuldade clara de ${publico}: ${dor}. Para vender melhor, a comunicação precisa mostrar a situação antes, o custo de continuar parado e o ganho prático de alcançar ${beneficio}.`,
-    },
-    {
-      title: '2. Três headlines prontas',
-      content: `1. ${beneficio} sem deixar ${dor} travar sua venda.\n\n2. Pare de explicar sua oferta de qualquer jeito e mostre por que ${produto} importa.\n\n3. Transforme uma oferta confusa em uma mensagem simples, direta e pronta para vender.`,
-    },
-    {
-      title: '3. Três CTAs prontos',
-      content: `1. Quero começar agora.\n\n2. Me envie o próximo passo.\n\n3. Quero tirar minha oferta da página em branco.`,
-    },
-    {
-      title: '4. Três mensagens curtas para WhatsApp ou direct',
-      content: `1. Oi, tudo bem? Vi que muita gente trava na hora de vender porque não sabe como explicar a própria oferta. O ${produto} ajuda a organizar essa mensagem de forma mais clara. Quer que eu te mostre?\n\n2. Você já tem uma oferta, mas sente que a comunicação ainda não está clara? Posso te mostrar uma forma simples de transformar isso em conteúdo de venda.\n\n3. Se hoje ${dor} está dificultando sua venda, o ${produto} pode ajudar você a chegar em ${beneficio} com uma mensagem mais direta. Quer entender como funciona?`,
-    },
-    {
-      title: '5. Três ideias de post',
-      content: `1. Post de dor: mostre o que acontece quando ${publico} tenta vender sem clareza.\n\n2. Post de antes e depois: compare uma oferta confusa com uma mensagem simples e objetiva.\n\n3. Post de convite: chame a pessoa para testar uma forma mais rápida de transformar a oferta em conteúdo pronto.`,
-    },
-    {
-      title: '6. Um roteiro curto de Reels',
-      content: `Gancho: Você tem uma oferta, mas trava na hora de explicar o que vende?\n\nProblema: Isso acontece porque muitas pessoas tentam vender sem organizar a dor, o benefício e a promessa principal.\n\nSolução: O ${produto} transforma essas informações em textos prontos para usar.\n\nCTA: Quer tirar sua oferta da página em branco? Comece agora.`,
-    },
-  ];
+function GuidePage() {
+  return (
+    <section className="page-section narrow">
+      <span className="eyebrow">Guia rápido</span>
+      <h1>Como obter respostas melhores da IA.</h1>
+      <div className="guide-stack">
+        <article>
+          <h2>O que é um comando bom?</h2>
+          <p>Um comando bom informa papel da IA, contexto, público, dor, desejo, objetivo, canal, tom, formato de saída e restrições.</p>
+        </article>
+        <article>
+          <h2>Por que prompts genéricos falham?</h2>
+          <p>Porque a IA não lê sua mente. Quando você pede “faça um post”, ela completa as lacunas com frases genéricas.</p>
+        </article>
+        <article>
+          <h2>Peça ajustes depois da primeira resposta</h2>
+          <ul className="check-list">
+            <li>Deixe mais direto.</li>
+            <li>Deixe mais humano.</li>
+            <li>Crie 3 variações.</li>
+            <li>Remova clichês.</li>
+            <li>Adapte para Reels.</li>
+          </ul>
+        </article>
+        <article>
+          <h2>Erros comuns</h2>
+          <p>Pedir sem contexto, não definir público, ignorar a dor, não informar o canal e aceitar a primeira resposta sem revisar.</p>
+        </article>
+      </div>
+    </section>
+  );
 }
 
-function generateSalesClarityKit(data: FormData): ResultBlock[] {
-  const produto = data.produto.trim();
-  const publico = data.publico.trim();
-  const dor = data.dor.trim();
-  const beneficio = data.beneficio.trim();
-  const canal = data.canal.trim();
-
-  return [
+function PricingPage({ navigate }: { navigate: (page: Page) => void }) {
+  const plans = [
     {
-      title: '1. Diagnóstico comercial completo',
-      content: `${produto} precisa ser comunicado como uma solução direta para ${publico} que sofre com ${dor}. A força da oferta está em transformar essa dor em uma promessa clara: sair da confusão, entender o valor da solução e chegar em ${beneficio}. Para vender melhor, a mensagem deve mostrar o antes, o depois, o custo de não agir e o caminho simples para começar.`,
+      name: 'Kit Inicial',
+      price: 'R$27',
+      link: checkoutLinks.plan27,
+      features: ['15 prompts-mestre', 'Exemplos preenchidos', 'Guia rápido', 'Bônus anti-texto-robótico'],
     },
     {
-      title: '2. Três ângulos de venda',
-      content: `1. Ângulo da dor: ${dor} está custando mais vendas, tempo ou clareza do que parece.\n\n2. Ângulo do antes e depois: antes, a oferta parece solta; depois, ${produto} mostra uma mensagem clara para chegar em ${beneficio}.\n\n3. Ângulo da simplicidade: você não precisa dominar copywriting para transformar sua oferta em textos prontos para vender.`,
+      name: 'Gerador Interativo',
+      price: 'R$47',
+      link: checkoutLinks.plan47,
+      featured: true,
+      features: ['Tudo do R$27', 'Gerador de prompts', 'Biblioteca organizada', 'Botão copiar', 'Exemplos por categoria'],
     },
     {
-      title: '3. Cinco roteiros de Reels',
-      content: `1. Gancho: Sua oferta é boa, mas sua mensagem não vende?\nProblema: Muita gente tenta vender sem explicar a dor principal.\nSolução: O ${produto} organiza a promessa e mostra o próximo passo.\nCTA: Quer vender com mais clareza? Comece agora.\n\n2. Gancho: O cliente não compra o que ele não entende.\nProblema: Quando a oferta parece confusa, a decisão fica lenta.\nSolução: Transforme sua mensagem em roteiro, headline e CTA.\nCTA: Veja como o ${produto} pode ajudar.\n\n3. Gancho: Pare de postar sem direção.\nProblema: Conteúdo solto não cria desejo de compra.\nSolução: Use uma estrutura com dor, benefício e chamada para ação.\nCTA: Gere seu kit de venda.\n\n4. Gancho: Você sabe explicar em uma frase por que alguém deveria comprar?\nProblema: Se a resposta demora, a venda trava.\nSolução: O ${produto} ajuda a simplificar essa mensagem.\nCTA: Teste uma comunicação mais clara.\n\n5. Gancho: O problema não é só vender pouco. É vender sem clareza.\nProblema: Sem clareza, o público não entende o valor.\nSolução: Crie mensagens prontas para ${canal}.\nCTA: Quero vender com clareza.`,
-    },
-    {
-      title: '4. Cinco mensagens de WhatsApp',
-      content: `1. Oi, tudo bem? Vi que muitas ofertas travam porque a mensagem não deixa claro o valor. O ${produto} ajuda a organizar isso e criar textos mais diretos para vender. Quer que eu te mostre?\n\n2. Você sente que tem uma boa oferta, mas não sabe como apresentar? O ${produto} transforma os dados da sua oferta em mensagens, headlines e CTAs prontos.\n\n3. Se hoje ${dor} está dificultando suas vendas, talvez o primeiro passo seja ajustar a forma como a oferta é explicada. Quer ver um exemplo?\n\n4. O ${produto} foi criado para quem precisa vender com mais clareza, sem começar do zero toda vez que for divulgar. Quer conhecer o kit completo?\n\n5. Tenho uma forma simples de transformar sua oferta em roteiros, mensagens e chamadas de venda. Posso te enviar os detalhes?`,
-    },
-    {
-      title: '5. Cinco headlines de venda',
-      content: `1. Venda com mais clareza sem começar do zero.\n\n2. Transforme sua oferta em mensagens prontas para vender.\n\n3. Pare de travar na hora de explicar o que você vende.\n\n4. Crie roteiros, headlines e CTAs a partir da sua oferta.\n\n5. ${beneficio} com uma comunicação mais simples e direta.`,
-    },
-    {
-      title: '6. Cinco CTAs prontos',
-      content: `1. Quero vender com clareza.\n\n2. Gerar meu kit completo.\n\n3. Quero transformar minha oferta em conteúdo pronto.\n\n4. Me mostrar o próximo passo.\n\n5. Quero parar de travar na divulgação.`,
-    },
-    {
-      title: '7. Respostas para objeções comuns',
-      content: `1. "Não sei se isso funciona para mim."\nResposta: A estrutura parte dos dados da sua própria oferta, então os textos são gerados com base no que você vende, para quem vende e qual dor resolve.\n\n2. "Eu não sei usar IA."\nResposta: Você não precisa escrever prompt. Basta preencher os campos principais e usar os textos como ponto de partida.\n\n3. "Já tentei postar e não vendeu."\nResposta: Postar sem direção é diferente de comunicar uma oferta com dor, benefício e CTA. O foco aqui é clareza comercial.\n\n4. "Não tenho tempo para criar conteúdo."\nResposta: O objetivo é justamente reduzir o tempo de criação e entregar uma primeira estrutura pronta para adaptar e publicar.\n\n5. "Tenho medo de comprar e não usar."\nResposta: O plano foi desenhado para gerar peças práticas: roteiros, mensagens, headlines, CTAs, ângulos e objeções em um único kit.`,
+      name: 'Comando Pro',
+      price: 'R$97',
+      link: checkoutLinks.plan97,
+      features: ['Tudo do R$47', 'Calendário de conteúdo', 'Prompts para página de venda', 'WhatsApp', 'Oferta e objeções'],
     },
   ];
+
+  return (
+    <section className="page-section">
+      <div className="section-heading">
+        <span className="eyebrow">Planos</span>
+        <h1>Comece simples. Evolua quando validar.</h1>
+        <p>Os links da Kiwify estão centralizados no código para troca rápida quando os checkouts estiverem prontos.</p>
+      </div>
+      <div className="pricing-grid">
+        {plans.map((plan) => (
+          <article className={`plan-card ${plan.featured ? 'featured' : ''}`} key={plan.name}>
+            <span className="badge">{plan.name}</span>
+            <h2>{plan.price}</h2>
+            <ul className="check-list">
+              {plan.features.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
+            <a className="primary-button" href={plan.link}>
+              Comprar {plan.price}
+            </a>
+          </article>
+        ))}
+      </div>
+      <div className="conversion-section">
+        <h2>Já comprou?</h2>
+        <p>Use o código recebido para liberar o acesso ao gerador.</p>
+        <button className="secondary-button" onClick={() => navigate('ativar')}>
+          Ativar acesso
+        </button>
+      </div>
+    </section>
+  );
 }
 
-function generateContent30Kit(data: FormData): ResultBlock[] {
-  const produto = data.produto.trim();
-  const publico = data.publico.trim();
-  const dor = data.dor.trim();
-  const beneficio = data.beneficio.trim();
-
-  return [
-    {
-      title: '1. Calendário de 30 dias',
-      content: Array.from({ length: 30 }, (_, index) => {
-        const day = index + 1;
-        const themes = [
-          `Dor principal: mostre como ${dor} aparece na rotina de ${publico}.`,
-          `Antes e depois: contraste a situação atual com o ganho de ${beneficio}.`,
-          `Prova de clareza: explique em linguagem simples o que ${produto} resolve.`,
-          `Erro comum: mostre uma decisão que mantém o público travado.`,
-          `Convite: chame a pessoa para conhecer o próximo passo.`,
-        ];
-        return `Dia ${day}: ${themes[index % themes.length]}`;
-      }).join('\n'),
-    },
-    {
-      title: '2. Ideias de posts por semana',
-      content: `Semana 1: posts de dor, identificação e problema escondido.\n\nSemana 2: posts educativos explicando por que ${dor} atrapalha a venda ou decisão.\n\nSemana 3: posts de solução mostrando como ${produto} ajuda a chegar em ${beneficio}.\n\nSemana 4: posts de conversão com convite, urgência leve, bastidores e chamada para compra.`,
-    },
-    {
-      title: '3. Roteiros de Reels para o mês',
-      content: `1. Gancho: Você ainda trava na hora de vender?\nProblema: A oferta fica confusa quando a dor não é explicada.\nSolução: ${produto} organiza a mensagem.\nCTA: Comece hoje.\n\n2. Gancho: O cliente não compra o que não entende.\nProblema: Mensagens soltas reduzem desejo.\nSolução: Use roteiro, headline e CTA.\nCTA: Gere seu conteúdo.\n\n3. Gancho: Sua oferta precisa de clareza, não de mais improviso.\nProblema: Postar sem direção cansa e não vende.\nSolução: Planeje o mês com uma sequência.\nCTA: Veja o plano de 30 dias.\n\n4. Gancho: E se seu conteúdo já começasse pronto?\nProblema: A página em branco atrasa a divulgação.\nSolução: ${produto} cria uma estrutura inicial.\nCTA: Quero 30 dias de conteúdo.\n\n5. Gancho: Vender todo dia não precisa ser complicado.\nProblema: Falta consistência e mensagem clara.\nSolução: Use um calendário com temas comerciais.\nCTA: Acesse o plano mensal.`,
-    },
-    {
-      title: '4. Mensagens de WhatsApp para divulgação',
-      content: `1. Oi, tudo bem? Estou organizando uma forma mais simples de ajudar ${publico} a sair de ${dor} e chegar em ${beneficio}. Quer que eu te mostre?\n\n2. Passei para te mostrar o ${produto}. Ele foi pensado para quem precisa de mais clareza antes de vender ou divulgar.\n\n3. Se hoje ${dor} está atrapalhando sua decisão, talvez esse seja um bom momento para olhar para uma solução mais simples.\n\n4. Tenho um material que mostra como transformar essa dificuldade em uma mensagem mais clara. Quer receber?\n\n5. Posso te enviar os detalhes do ${produto} e explicar qual plano faz mais sentido para você?`,
-    },
-    {
-      title: '5. CTAs por etapa do funil',
-      content: `Topo de funil:\n1. Salve para lembrar depois.\n2. Compartilhe com alguém que precisa vender com mais clareza.\n3. Comente "clareza" para receber o próximo passo.\n\nMeio de funil:\n1. Quer entender como isso se aplica à sua oferta?\n2. Me chame no WhatsApp para ver um exemplo.\n3. Veja qual plano combina com seu momento.\n\nFundo de funil:\n1. Comprar agora.\n2. Quero meu conteúdo pronto.\n3. Acessar o plano de 30 dias.`,
-    },
-    {
-      title: '6. Sequência de divulgação',
-      content: `Dia 1 a 3: publique conteúdos de dor e identificação.\n\nDia 4 a 7: explique os erros que mantêm ${publico} preso em ${dor}.\n\nDia 8 a 14: apresente o ${produto} como solução prática.\n\nDia 15 a 21: publique roteiros, posts e mensagens com exemplos de antes e depois.\n\nDia 22 a 30: aumente os CTAs, responda objeções e direcione para a compra.`,
-    },
-  ];
+function ActivatePage({
+  email,
+  code,
+  setEmail,
+  setCode,
+  message,
+  onSubmit,
+}: {
+  email: string;
+  code: string;
+  setEmail: (value: string) => void;
+  setCode: (value: string) => void;
+  message: string;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  return (
+    <section className="page-section narrow">
+      <div className="section-heading">
+        <span className="eyebrow">Ativação</span>
+        <h1>Libere seu acesso.</h1>
+        <p>Use o e-mail da compra e o código de acesso. Códigos de teste: COMANDO27, COMANDO47 ou COMANDO97.</p>
+      </div>
+      <form className="prompt-form" onSubmit={onSubmit}>
+        <label>
+          E-mail da compra
+          <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="seunome@email.com" />
+        </label>
+        <label>
+          Código de acesso
+          <input value={code} onChange={(event) => setCode(event.target.value)} placeholder="COMANDO27" />
+        </label>
+        <button className="primary-button" type="submit">
+          Ativar acesso
+        </button>
+        {message && <p className="copy-status">{message}</p>}
+      </form>
+    </section>
+  );
 }
 
-function generateSample(data: FormData): ResultBlock[] {
-  const produto = data.produto.trim();
-  const publico = data.publico.trim();
-  const dor = data.dor.trim();
-  const beneficio = data.beneficio.trim();
-  const canal = data.canal.trim();
-  const tom = data.tom.toLowerCase();
-  const normalizarTexto = (texto: string) =>
-    texto
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-  const contexto = normalizarTexto(`${produto} ${publico} ${dor} ${beneficio}`);
-  const isOfertaRural = [
-    'safra',
-    'produtor rural',
-    'produtores rurais',
-    'produtor',
-    'agricultor',
-    'agricultores',
-    'custos',
-    'custo por hectare',
-    'lucro',
-    'producao rural',
-  ].some((termo) => contexto.includes(termo));
+function ThankYouPage({ navigate }: { navigate: (page: Page) => void }) {
+  return (
+    <section className="page-section narrow empty-state">
+      <span className="eyebrow">Compra quase pronta</span>
+      <h1>Após finalizar o pagamento, use seu código de acesso.</h1>
+      <p>Quando tiver o código, volte para a tela de ativação e libere o sistema.</p>
+      <div className="hero-actions">
+        <button className="primary-button" onClick={() => navigate('ativar')}>
+          Ativar acesso
+        </button>
+        <button className="secondary-button" onClick={() => navigate('guia')}>
+          Ver guia
+        </button>
+      </div>
+    </section>
+  );
+}
 
-  if (isOfertaRural) {
-    return [
-      {
-        title: '1. Diagnóstico rápido da oferta',
-        content: `${produto} resolve uma dor concreta de ${publico}: trabalhar a safra inteira, vender a produção e ainda não saber quanto realmente sobrou. Na prática, isso aparece como ${dor}. A força da oferta está em mostrar que faturamento não é lucro: o produtor precisa enxergar custo por hectare, margem e lucro real antes de decidir a próxima safra.`,
-      },
-      {
-        title: '2. Melhor ângulo de venda',
-        content: `Você pode estar produzindo bem e ainda perdendo dinheiro sem perceber. Em ${canal}, esse ângulo combina com um tom ${tom} porque fala direto sobre dinheiro que entra versus dinheiro que sobra no fim da safra.`,
-      },
-      {
-        title: '3. Roteiro de Reels',
-        content: `Gancho: Você sabe quanto realmente sobra da sua safra depois de pagar tudo?\n\nProblema: Muitos produtores olham só para o valor da venda e acham que tiveram lucro.\n\nConsequência: Mas quando entram insumos, diesel, diárias, manutenção, máquinas e pequenos gastos, a conta muda.\n\nSolução: ${produto} organiza os custos e mostra o lucro real da produção, com mais clareza sobre ${beneficio}.\n\nCTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
-      },
-      {
-        title: '4. Mensagem de WhatsApp',
-        content: `Oi, tudo bem? Muitos produtores só descobrem se ganharam ou perderam dinheiro depois que a safra termina. O ${produto} ajuda a organizar os custos, enxergar o gasto por hectare e entender se a produção está dando lucro de verdade. Quer que eu te mostre como funciona?`,
-      },
-      {
-        title: '5. Headline de venda',
-        content: `Descubra se sua safra está dando lucro ou apenas girando dinheiro.`,
-      },
-      {
-        title: '6. CTA para comprar o pacote completo',
-        content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com clareza sobre custos, produção e lucro real.`,
-      },
-    ];
-  }
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <p>O Comando Pronto IA gera prompts para você usar na IA de sua preferência. Revise sempre antes de publicar.</p>
+    </footer>
+  );
+}
 
-  return [
-    {
-      title: '1. Diagnóstico rápido da oferta',
-      content: `${produto} resolve uma dor concreta de ${publico}: ${dor}. A comunicação deve mostrar onde essa dor aparece na rotina de compra, atendimento ou decisão do cliente, e ligar esse cenário ao benefício central: ${beneficio}. Quanto mais a promessa parecer uma situação real, mais fácil fica entender o valor da oferta.`,
-    },
-    {
-      title: '2. Melhor ângulo de venda',
-      content: `Para ${publico}, ${dor} não é apenas um incômodo: é o obstáculo que impede ${beneficio}. Em ${canal}, use um tom ${tom} para abrir a conversa com esse problema e apresentar ${produto} como o caminho mais claro para resolvê-lo.`,
-    },
-    {
-      title: '3. Roteiro de Reels',
-      content: `Gancho: ${publico} ainda perde vendas, energia ou previsibilidade por causa de ${dor}?\n\nProblema: Quando esse problema vira rotina, a pessoa tenta compensar no esforço e continua sem chegar em ${beneficio}.\n\nConsequência: O resultado é uma oferta mais difícil de explicar, uma decisão mais lenta e clientes sem perceberem o valor real do que está sendo vendido.\n\nSolução: ${produto} organiza a mensagem da oferta e mostra por que ${beneficio} é o próximo passo mais lógico.\n\nCTA: Quer ver como isso se aplica ao seu caso? Chame no WhatsApp.`,
-    },
-    {
-      title: '4. Mensagem de WhatsApp',
-      content: `Oi, tudo bem? Vi que ${dor} costuma atrapalhar bastante quem precisa vender com clareza. O ${produto} foi pensado para ajudar ${publico} a chegar em ${beneficio} com uma mensagem mais simples de entender e mais fácil de apresentar. Quer que eu te mostre como funciona?`,
-    },
-    {
-      title: '5. Headline de venda',
-      content: `${beneficio} sem deixar ${dor} travar sua venda.`,
-    },
-    {
-      title: '6. CTA para comprar o pacote completo',
-      content: `Essa foi só uma amostra. No pacote completo, você recebe posts, roteiros, mensagens de WhatsApp, headlines e variações prontas para vender ${produto} com mais clareza, mais contexto e argumentos comerciais adaptados ao seu público.`,
-    },
-  ];
+function buildPrompt(template: PromptTemplate, form: PromptForm) {
+  const data = {
+    nicho: form.nicho || '[preencha o nicho]',
+    produto: form.produto || '[preencha o produto ou serviço]',
+    publico: form.publico || '[preencha o público-alvo]',
+    dor: form.dor || '[preencha a principal dor]',
+    desejo: form.desejo || '[preencha o principal desejo]',
+    tom: form.tom || '[preencha o tom de voz]',
+    canal: form.canal || '[preencha o canal]',
+    objetivo: form.objetivo || '[preencha o objetivo]',
+    observacoes: form.observacoes || 'Sem observações adicionais.',
+  };
+
+  return `${template.role}
+
+Contexto do negócio:
+- Nicho: ${data.nicho}
+- Produto ou serviço: ${data.produto}
+- Público-alvo: ${data.publico}
+- Principal dor do público: ${data.dor}
+- Principal desejo do público: ${data.desejo}
+- Tom de voz: ${data.tom}
+- Canal: ${data.canal}
+- Objetivo: ${data.objetivo}
+- Observações adicionais: ${data.observacoes}
+
+Tarefa:
+${template.output}
+
+Regras obrigatórias:
+- Não use linguagem genérica de IA.
+- Não use palavras como "potencialize", "revolucionário", "desbloqueie", "jornada" e "transformador".
+- Não prometa resultado garantido.
+- Use exemplos práticos e situações reais do público.
+- Escreva com clareza, sem enrolação.
+- Adapte a estrutura ao canal informado.
+- Termine com uma ação clara para o leitor.
+
+Critérios de qualidade:
+- O texto deve parecer escrito para o público informado, não para qualquer pessoa.
+- A dor precisa aparecer de forma concreta.
+- A resposta deve ter aplicação imediata.
+- Se a informação estiver vaga, faça uma suposição simples e avise no final.`;
 }
 
 export default App;
