@@ -30,9 +30,9 @@ const initialForm: FormData = {
 };
 
 const planLinks = {
-  express: 'https://pay.kiwify.com.br/kit-express-placeholder',
-  complete: 'https://pay.kiwify.com.br/kit-venda-completo-placeholder',
-  days: 'https://pay.kiwify.com.br/conteudo-30-dias-placeholder',
+  express: 'https://pay.kiwify.com.br/XrpQAEr',
+  complete: 'https://pay.kiwify.com.br/5VBTVxR',
+  days: 'https://pay.kiwify.com.br/MA8CXB2',
 };
 
 function App() {
@@ -367,9 +367,9 @@ function EmptyResult({ onStart }: { onStart: () => void }) {
 function PlansPage() {
   const plans = [
     {
-      name: 'Kit Express',
+      name: 'Começar Agora',
       price: 'R$27',
-      description: 'Para quem quer sair da dúvida rápido com um pacote enxuto de venda.',
+      description: 'Gere as primeiras peças para tirar sua oferta da página em branco.',
       features: [
         'Diagnóstico objetivo da oferta',
         'Headline e CTA prontos para usar',
@@ -379,9 +379,9 @@ function PlansPage() {
       link: planLinks.express,
     },
     {
-      name: 'Kit Venda Completo',
+      name: 'Vender com Clareza',
       price: 'R$47',
-      description: 'Recomendado para transformar sua oferta em um kit prático de conteúdos de venda.',
+      description: 'Transforme sua oferta em posts, roteiros, mensagens e copies prontas para vender.',
       features: [
         'Diagnóstico comercial mais completo',
         'Roteiros de Reels com gancho, problema, solução e CTA',
@@ -392,9 +392,9 @@ function PlansPage() {
       featured: true,
     },
     {
-      name: 'Conteúdo 30 Dias',
+      name: '30 Dias de Conteúdo',
       price: 'R$97',
-      description: 'Para quem precisa manter constância com ideias comerciais durante o mês.',
+      description: 'Receba uma estrutura mensal para manter constância e vender com mais frequência.',
       features: [
         'Calendário mensal de publicações',
         'Ideias por etapa do funil de venda',
@@ -410,10 +410,7 @@ function PlansPage() {
       <div className="section-heading">
         <span className="eyebrow">Planos</span>
         <h1>Escolha o pacote certo para receber conteúdo pronto de venda</h1>
-        <p>
-          Comece com o essencial, avance para o kit recomendado ou planeje 30 dias de conteúdo.
-          Links de compra são placeholders da Kiwify enquanto o MVP é validado.
-        </p>
+        <p>Comece com o essencial, avance para o plano recomendado ou planeje 30 dias de conteúdo.</p>
       </div>
 
       <div className="plans-grid">
