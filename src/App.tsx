@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
 
-type Page = 'home' | 'sample' | 'result' | 'plans' | 'starterKit';
+type Page = 'home' | 'sample' | 'result' | 'plans' | 'starterKit' | 'salesClarityKit';
 
 type FormData = {
   nome: string;
@@ -47,6 +47,10 @@ function App() {
   );
   const starterKitBlocks = useMemo(
     () => (submittedData ? generateStarterKit(submittedData) : []),
+    [submittedData],
+  );
+  const salesClarityBlocks = useMemo(
+    () => (submittedData ? generateSalesClarityKit(submittedData) : []),
     [submittedData],
   );
 
@@ -111,8 +115,22 @@ function App() {
           />
         )}
         {page === 'starterKit' && !submittedData && <EmptyStarterKit onStart={() => goTo('sample')} />}
+        {page === 'salesClarityKit' && submittedData && (
+          <SalesClarityKitPage
+            data={submittedData}
+            blocks={salesClarityBlocks}
+            copiedBlock={copiedBlock}
+            onCopy={copyBlock}
+            onPlans={() => goTo('plans')}
+            onNewSample={() => goTo('sample')}
+          />
+        )}
+        {page === 'salesClarityKit' && !submittedData && <EmptySalesClarityKit onStart={() => goTo('sample')} />}
         {page === 'plans' && (
-          <PlansPage onViewStarterKit={() => goTo(submittedData ? 'starterKit' : 'sample')} />
+          <PlansPage
+            onViewStarterKit={() => goTo(submittedData ? 'starterKit' : 'sample')}
+            onViewSalesClarityKit={() => goTo(submittedData ? 'salesClarityKit' : 'sample')}
+          />
         )}
       </main>
     </div>
@@ -407,6 +425,56 @@ function StarterKitPage({
   );
 }
 
+function SalesClarityKitPage({
+  data,
+  blocks,
+  copiedBlock,
+  onCopy,
+  onPlans,
+  onNewSample,
+}: {
+  data: FormData;
+  blocks: ResultBlock[];
+  copiedBlock: string | null;
+  onCopy: (block: ResultBlock) => void;
+  onPlans: () => void;
+  onNewSample: () => void;
+}) {
+  return (
+    <section className="result-section">
+      <div className="section-heading">
+        <span className="eyebrow">Exemplo do plano R$47</span>
+        <h1>{data.nome}, veja o que o Vender com Clareza pode entregar.</h1>
+        <p>
+          Este é um exemplo simulado do kit completo: diagnóstico comercial, ângulos de venda,
+          roteiros de Reels, mensagens de WhatsApp, headlines, CTAs e respostas para objeções.
+        </p>
+      </div>
+
+      <BlockGrid blocks={blocks} copiedBlock={copiedBlock} onCopy={onCopy} />
+
+      <div className="upgrade-banner">
+        <div>
+          <span className="eyebrow">Vender com Clareza</span>
+          <h2>Quer receber o kit completo para a sua oferta?</h2>
+          <p>Compre o plano R$47 para transformar sua oferta em mensagens, roteiros e argumentos prontos.</p>
+        </div>
+        <div className="banner-actions">
+          <button className="secondary-button" onClick={onNewSample}>
+            Editar dados
+          </button>
+          <a className="primary-button" href={planLinks.complete} target="_blank" rel="noreferrer">
+            Comprar por R$47
+          </a>
+          <button className="secondary-button" onClick={onPlans}>
+            Ver planos
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function BlockGrid({
   blocks,
   copiedBlock,
@@ -457,7 +525,25 @@ function EmptyStarterKit({ onStart }: { onStart: () => void }) {
   );
 }
 
-function PlansPage({ onViewStarterKit }: { onViewStarterKit: () => void }) {
+function EmptySalesClarityKit({ onStart }: { onStart: () => void }) {
+  return (
+    <section className="empty-state">
+      <h1>Preencha sua oferta antes de ver o exemplo do plano completo.</h1>
+      <p>O plano Vender com Clareza usa os dados da sua oferta para montar um kit comercial mais robusto.</p>
+      <button className="primary-button" onClick={onStart}>
+        Preencher minha oferta
+      </button>
+    </section>
+  );
+}
+
+function PlansPage({
+  onViewStarterKit,
+  onViewSalesClarityKit,
+}: {
+  onViewStarterKit: () => void;
+  onViewSalesClarityKit: () => void;
+}) {
   const plans = [
     {
       name: 'Começar Agora',
@@ -470,7 +556,7 @@ function PlansPage({ onViewStarterKit }: { onViewStarterKit: () => void }) {
         'Indicado para validar uma promessa específica',
       ],
       link: planLinks.express,
-      preview: true,
+      preview: 'starter',
     },
     {
       name: 'Vender com Clareza',
@@ -484,6 +570,7 @@ function PlansPage({ onViewStarterKit }: { onViewStarterKit: () => void }) {
       ],
       link: planLinks.complete,
       featured: true,
+      preview: 'clarity',
     },
     {
       name: '30 Dias de Conteúdo',
@@ -519,9 +606,14 @@ function PlansPage({ onViewStarterKit }: { onViewStarterKit: () => void }) {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            {plan.preview && (
+            {plan.preview === 'starter' && (
               <button className="secondary-button plan-button" onClick={onViewStarterKit}>
                 Ver exemplo do que recebo
+              </button>
+            )}
+            {plan.preview === 'clarity' && (
+              <button className="secondary-button plan-button" onClick={onViewSalesClarityKit}>
+                Ver exemplo do kit completo
               </button>
             )}
             <a className="primary-button plan-button" href={plan.link} target="_blank" rel="noreferrer">
@@ -568,6 +660,45 @@ function generateStarterKit(data: FormData): ResultBlock[] {
   ];
 }
 
+function generateSalesClarityKit(data: FormData): ResultBlock[] {
+  const produto = data.produto.trim();
+  const publico = data.publico.trim();
+  const dor = data.dor.trim();
+  const beneficio = data.beneficio.trim();
+  const canal = data.canal.trim();
+
+  return [
+    {
+      title: '1. Diagnóstico comercial completo',
+      content: `${produto} precisa ser comunicado como uma solução direta para ${publico} que sofre com ${dor}. A força da oferta está em transformar essa dor em uma promessa clara: sair da confusão, entender o valor da solução e chegar em ${beneficio}. Para vender melhor, a mensagem deve mostrar o antes, o depois, o custo de não agir e o caminho simples para começar.`,
+    },
+    {
+      title: '2. Três ângulos de venda',
+      content: `1. Ângulo da dor: ${dor} está custando mais vendas, tempo ou clareza do que parece.\n\n2. Ângulo do antes e depois: antes, a oferta parece solta; depois, ${produto} mostra uma mensagem clara para chegar em ${beneficio}.\n\n3. Ângulo da simplicidade: você não precisa dominar copywriting para transformar sua oferta em textos prontos para vender.`,
+    },
+    {
+      title: '3. Cinco roteiros de Reels',
+      content: `1. Gancho: Sua oferta é boa, mas sua mensagem não vende?\nProblema: Muita gente tenta vender sem explicar a dor principal.\nSolução: O ${produto} organiza a promessa e mostra o próximo passo.\nCTA: Quer vender com mais clareza? Comece agora.\n\n2. Gancho: O cliente não compra o que ele não entende.\nProblema: Quando a oferta parece confusa, a decisão fica lenta.\nSolução: Transforme sua mensagem em roteiro, headline e CTA.\nCTA: Veja como o ${produto} pode ajudar.\n\n3. Gancho: Pare de postar sem direção.\nProblema: Conteúdo solto não cria desejo de compra.\nSolução: Use uma estrutura com dor, benefício e chamada para ação.\nCTA: Gere seu kit de venda.\n\n4. Gancho: Você sabe explicar em uma frase por que alguém deveria comprar?\nProblema: Se a resposta demora, a venda trava.\nSolução: O ${produto} ajuda a simplificar essa mensagem.\nCTA: Teste uma comunicação mais clara.\n\n5. Gancho: O problema não é só vender pouco. É vender sem clareza.\nProblema: Sem clareza, o público não entende o valor.\nSolução: Crie mensagens prontas para ${canal}.\nCTA: Quero vender com clareza.`,
+    },
+    {
+      title: '4. Cinco mensagens de WhatsApp',
+      content: `1. Oi, tudo bem? Vi que muitas ofertas travam porque a mensagem não deixa claro o valor. O ${produto} ajuda a organizar isso e criar textos mais diretos para vender. Quer que eu te mostre?\n\n2. Você sente que tem uma boa oferta, mas não sabe como apresentar? O ${produto} transforma os dados da sua oferta em mensagens, headlines e CTAs prontos.\n\n3. Se hoje ${dor} está dificultando suas vendas, talvez o primeiro passo seja ajustar a forma como a oferta é explicada. Quer ver um exemplo?\n\n4. O ${produto} foi criado para quem precisa vender com mais clareza, sem começar do zero toda vez que for divulgar. Quer conhecer o kit completo?\n\n5. Tenho uma forma simples de transformar sua oferta em roteiros, mensagens e chamadas de venda. Posso te enviar os detalhes?`,
+    },
+    {
+      title: '5. Cinco headlines de venda',
+      content: `1. Venda com mais clareza sem começar do zero.\n\n2. Transforme sua oferta em mensagens prontas para vender.\n\n3. Pare de travar na hora de explicar o que você vende.\n\n4. Crie roteiros, headlines e CTAs a partir da sua oferta.\n\n5. ${beneficio} com uma comunicação mais simples e direta.`,
+    },
+    {
+      title: '6. Cinco CTAs prontos',
+      content: `1. Quero vender com clareza.\n\n2. Gerar meu kit completo.\n\n3. Quero transformar minha oferta em conteúdo pronto.\n\n4. Me mostrar o próximo passo.\n\n5. Quero parar de travar na divulgação.`,
+    },
+    {
+      title: '7. Respostas para objeções comuns',
+      content: `1. "Não sei se isso funciona para mim."\nResposta: A estrutura parte dos dados da sua própria oferta, então os textos são gerados com base no que você vende, para quem vende e qual dor resolve.\n\n2. "Eu não sei usar IA."\nResposta: Você não precisa escrever prompt. Basta preencher os campos principais e usar os textos como ponto de partida.\n\n3. "Já tentei postar e não vendeu."\nResposta: Postar sem direção é diferente de comunicar uma oferta com dor, benefício e CTA. O foco aqui é clareza comercial.\n\n4. "Não tenho tempo para criar conteúdo."\nResposta: O objetivo é justamente reduzir o tempo de criação e entregar uma primeira estrutura pronta para adaptar e publicar.\n\n5. "Tenho medo de comprar e não usar."\nResposta: O plano foi desenhado para gerar peças práticas: roteiros, mensagens, headlines, CTAs, ângulos e objeções em um único kit.`,
+    },
+  ];
+}
+
 function generateSample(data: FormData): ResultBlock[] {
   const produto = data.produto.trim();
   const publico = data.publico.trim();
@@ -606,15 +737,7 @@ function generateSample(data: FormData): ResultBlock[] {
       },
       {
         title: '3. Roteiro de Reels',
-        content: `Gancho: Você sabe quanto realmente sobra da sua safra depois de pagar tudo?
-
-Problema: Muitos produtores olham só para o valor da venda e acham que tiveram lucro.
-
-Consequência: Mas quando entram insumos, diesel, diárias, manutenção, máquinas e pequenos gastos, a conta muda.
-
-Solução: ${produto} organiza os custos e mostra o lucro real da produção, com mais clareza sobre ${beneficio}.
-
-CTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
+        content: `Gancho: Você sabe quanto realmente sobra da sua safra depois de pagar tudo?\n\nProblema: Muitos produtores olham só para o valor da venda e acham que tiveram lucro.\n\nConsequência: Mas quando entram insumos, diesel, diárias, manutenção, máquinas e pequenos gastos, a conta muda.\n\nSolução: ${produto} organiza os custos e mostra o lucro real da produção, com mais clareza sobre ${beneficio}.\n\nCTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
       },
       {
         title: '4. Mensagem de WhatsApp',
@@ -642,15 +765,7 @@ CTA: Quer enxergar sua safra com mais clareza? Chame no WhatsApp.`,
     },
     {
       title: '3. Roteiro de Reels',
-      content: `Gancho: ${publico} ainda perde vendas, energia ou previsibilidade por causa de ${dor}?
-
-Problema: Quando esse problema vira rotina, a pessoa tenta compensar no esforço e continua sem chegar em ${beneficio}.
-
-Consequência: O resultado é uma oferta mais difícil de explicar, uma decisão mais lenta e clientes sem perceberem o valor real do que está sendo vendido.
-
-Solução: ${produto} organiza a mensagem da oferta e mostra por que ${beneficio} é o próximo passo mais lógico.
-
-CTA: Quer ver como isso se aplica ao seu caso? Chame no WhatsApp.`,
+      content: `Gancho: ${publico} ainda perde vendas, energia ou previsibilidade por causa de ${dor}?\n\nProblema: Quando esse problema vira rotina, a pessoa tenta compensar no esforço e continua sem chegar em ${beneficio}.\n\nConsequência: O resultado é uma oferta mais difícil de explicar, uma decisão mais lenta e clientes sem perceberem o valor real do que está sendo vendido.\n\nSolução: ${produto} organiza a mensagem da oferta e mostra por que ${beneficio} é o próximo passo mais lógico.\n\nCTA: Quer ver como isso se aplica ao seu caso? Chame no WhatsApp.`,
     },
     {
       title: '4. Mensagem de WhatsApp',
